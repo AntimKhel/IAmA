@@ -69,33 +69,24 @@ val ScrollProgressStyle = CssStyle.base {
         .transition(Transition.of("width", 50.ms, TransitionTimingFunction.Linear))
 }
 
-// Scroll to element by ID without polluting history
-private fun scrollToSection(id: String) {
-    document.getElementById(id)?.asDynamic()?.scrollIntoView(
-        js("({behavior: 'smooth', block: 'start'})")
-    )
-}
-
-@Composable
-private fun SectionLink(sectionId: String, text: String) {
-    Span(
-        Modifier
-            .cursor(Cursor.Pointer)
-            .userSelect(UserSelect.None)
-            .onClick { scrollToSection(sectionId) }
-            .toAttrs()
-    ) {
-        Text(text)
+// Navigate to section: scroll if on home page, otherwise route home first
+private fun navigateToSection(id: String, router: com.varabyte.kobweb.navigation.Router) {
+    val el = document.getElementById(id)
+    if (el != null) {
+        el.asDynamic().scrollIntoView(js("({behavior: 'smooth', block: 'start'})"))
+    } else {
+        router.tryRoutingTo("/#$id")
     }
 }
 
 @Composable
 private fun MenuItems(onNavigate: () -> Unit = {}) {
-    Span(Modifier.cursor(Cursor.Pointer).onClick { scrollToSection("about"); onNavigate() }.toAttrs()) { Text("About") }
-    Span(Modifier.cursor(Cursor.Pointer).onClick { scrollToSection("experience"); onNavigate() }.toAttrs()) { Text("Experience") }
-    Span(Modifier.cursor(Cursor.Pointer).onClick { scrollToSection("skills"); onNavigate() }.toAttrs()) { Text("Skills") }
-    Span(Modifier.cursor(Cursor.Pointer).onClick { scrollToSection("education"); onNavigate() }.toAttrs()) { Text("Education") }
-    Span(Modifier.cursor(Cursor.Pointer).onClick { scrollToSection("certifications"); onNavigate() }.toAttrs()) { Text("Certs") }
+    val router = com.varabyte.kobweb.core.rememberPageContext().router
+    val navMod = Modifier.cursor(Cursor.Pointer).userSelect(UserSelect.None)
+
+    listOf("about" to "About", "experience" to "Experience", "skills" to "Skills", "education" to "Education", "certifications" to "Certs").forEach { (id, label) ->
+        Span(navMod.onClick { navigateToSection(id, router); onNavigate() }.toAttrs()) { Text(label) }
+    }
     Link("/blog", "Blog", variant = UndecoratedLinkVariant.then(UncoloredLinkVariant))
 }
 
