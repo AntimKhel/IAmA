@@ -26,11 +26,14 @@ fun HomePage() {
     HeroSection()
     AboutSection()
     Box(AltSectionWrapperStyle.toModifier().fillMaxWidth()) {
-        ExperienceSection()
+        ShowcaseSection()
     }
-    SkillsSection()
+    ExperienceSection()
     Box(AltSectionWrapperStyle.toModifier().fillMaxWidth()) {
-        EducationSection()
+        SkillsSection()
     }
-    CertSection()
+    EducationSection()
+    Box(AltSectionWrapperStyle.toModifier().fillMaxWidth()) {
+        CertSection()
+    }
 }
