@@ -1,44 +1,48 @@
 package dev.ritwik.iama
 
 import com.varabyte.kobweb.compose.ui.graphics.Color
-import com.varabyte.kobweb.compose.ui.graphics.Colors
 import com.varabyte.kobweb.silk.init.InitSilk
 import com.varabyte.kobweb.silk.init.InitSilkContext
 import com.varabyte.kobweb.silk.theme.colors.ColorMode
 import com.varabyte.kobweb.silk.theme.colors.palette.background
 import com.varabyte.kobweb.silk.theme.colors.palette.color
 
-/**
- * @property nearBackground A useful color to apply to a container that should differentiate itself from the background
- *   but just a little.
- */
 class SitePalette(
     val nearBackground: Color,
-    val cobweb: Color,
     val brand: Brand,
+    val textSecondary: Color,
+    val border: Color,
+    val codeBg: Color,
 ) {
     class Brand(
-        val primary: Color = Color.rgb(0x3C83EF),
-        val accent: Color = Color.rgb(0xF3DB5B),
+        val primary: Color,
+        val primaryVariant: Color,
+        val accent: Color,
     )
 }
 
 object SitePalettes {
     val light = SitePalette(
-        nearBackground = Color.rgb(0xF4F6FA),
-        cobweb = Colors.LightGray,
+        nearBackground = Color.rgb(0xF0F4F0),
         brand = SitePalette.Brand(
-            primary = Color.rgb(0x3C83EF),
-            accent = Color.rgb(0xFCBA03),
-        )
+            primary = Color.rgb(0x1B8A2E),
+            primaryVariant = Color.rgb(0x0E6B1F),
+            accent = Color.rgb(0x0969DA),
+        ),
+        textSecondary = Color.rgb(0x656D76),
+        border = Color.rgb(0xD0D7DE),
+        codeBg = Color.rgb(0xF6F8FA),
     )
     val dark = SitePalette(
-        nearBackground = Color.rgb(0x13171F),
-        cobweb = Colors.LightGray.inverted(),
+        nearBackground = Color.rgb(0x161B22),
         brand = SitePalette.Brand(
-            primary = Color.rgb(0x3C83EF),
-            accent = Color.rgb(0xF3DB5B),
-        )
+            primary = Color.rgb(0x3DDC84),
+            primaryVariant = Color.rgb(0x2ECC71),
+            accent = Color.rgb(0x58A6FF),
+        ),
+        textSecondary = Color.rgb(0x8B949E),
+        border = Color.rgb(0x30363D),
+        codeBg = Color.rgb(0x1C2128),
     )
 }
 
@@ -51,8 +55,8 @@ fun ColorMode.toSitePalette(): SitePalette {
 
 @InitSilk
 fun initTheme(ctx: InitSilkContext) {
-    ctx.theme.palettes.light.background = Color.rgb(0xFAFAFA)
-    ctx.theme.palettes.light.color = Colors.Black
-    ctx.theme.palettes.dark.background = Color.rgb(0x06080B)
-    ctx.theme.palettes.dark.color = Colors.White
+    ctx.theme.palettes.light.background = Color.rgb(0xF5F7F5)
+    ctx.theme.palettes.light.color = Color.rgb(0x1F2328)
+    ctx.theme.palettes.dark.background = Color.rgb(0x0D1117)
+    ctx.theme.palettes.dark.color = Color.rgb(0xE6EDF3)
 }
