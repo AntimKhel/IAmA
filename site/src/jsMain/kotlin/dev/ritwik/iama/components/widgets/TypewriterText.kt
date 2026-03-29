@@ -35,8 +35,7 @@ val TypewriterContainerStyle = CssStyle {
 val CursorStyle = CssStyle.base {
     Modifier
         .display(DisplayStyle.InlineBlock)
-        .width(2.px)
-        .height(1.1.cssRem)
+        .width(2.px).height(1.1.cssRem)
         .backgroundColor(colorMode.toSitePalette().brand.primary)
         .margin(left = 2.px)
         .styleModifier { property("animation", "cursor-blink 1s step-end infinite") }
@@ -60,35 +59,18 @@ fun TypewriterText() {
 
     LaunchedEffect(Unit) {
         while (true) {
-            val currentFact = facts[factIndex % facts.size]
-
-            // Type in
-            for (i in 1..currentFact.length) {
-                displayedText = currentFact.substring(0, i)
-                delay(40)
-            }
-
-            // Hold
+            val fact = facts[factIndex % facts.size]
+            for (i in 1..fact.length) { displayedText = fact.substring(0, i); delay(40) }
             delay(4000)
-
-            // Delete
-            for (i in currentFact.length downTo 0) {
-                displayedText = currentFact.substring(0, i)
-                delay(25)
-            }
-
+            for (i in fact.length downTo 0) { displayedText = fact.substring(0, i); delay(25) }
             delay(300)
             factIndex++
         }
     }
 
     Span(TypewriterContainerStyle.toModifier().toAttrs()) {
-        Span(Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold).toAttrs()) {
-            Text("> ")
-        }
-        Span(Modifier.toAttrs()) {
-            Text(displayedText)
-        }
+        Span(Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold).toAttrs()) { Text("> ") }
+        Span(Modifier.toAttrs()) { Text(displayedText) }
         Span(CursorStyle.toModifier().toAttrs())
     }
 }

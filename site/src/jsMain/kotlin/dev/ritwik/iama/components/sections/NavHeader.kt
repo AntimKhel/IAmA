@@ -12,7 +12,7 @@ import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.graphics.Colors
 import com.varabyte.kobweb.compose.ui.modifiers.*
-import com.varabyte.kobweb.compose.ui.styleModifier
+import com.varabyte.kobweb.compose.css.UserSelect
 import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.silk.components.icons.CloseIcon
 import com.varabyte.kobweb.silk.components.icons.HamburgerIcon
@@ -81,7 +81,7 @@ private fun SectionLink(sectionId: String, text: String) {
     Span(
         Modifier
             .cursor(Cursor.Pointer)
-            .styleModifier { property("user-select", "none") }
+            .userSelect(UserSelect.None)
             .onClick { scrollToSection(sectionId) }
             .toAttrs()
     ) {

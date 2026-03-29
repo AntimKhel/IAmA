@@ -16,8 +16,11 @@ import com.varabyte.kobweb.silk.style.base
 import com.varabyte.kobweb.silk.theme.colors.palette.color
 import com.varabyte.kobweb.silk.theme.colors.palette.toPalette
 import com.varabyte.kobweb.silk.theme.modifyStyleBase
-import com.varabyte.kobweb.compose.ui.styleModifier
 import org.jetbrains.compose.web.css.*
+
+// ---------------------------------------------------------------------------
+// Global base styles
+// ---------------------------------------------------------------------------
 
 @InitSilk
 fun initSiteStyles(ctx: InitSilkContext) {
@@ -27,7 +30,6 @@ fun initSiteStyles(ctx: InitSilkContext) {
                 Modifier.scrollBehavior(ScrollBehavior.Smooth)
             }
         }
-
         registerStyleBase("body") {
             Modifier
                 .fontFamily("Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif")
@@ -35,18 +37,15 @@ fun initSiteStyles(ctx: InitSilkContext) {
                 .lineHeight(1.5)
         }
     }
-
-    ctx.theme.modifyStyleBase(HorizontalDividerStyle) {
-        Modifier.fillMaxWidth()
-    }
+    ctx.theme.modifyStyleBase(HorizontalDividerStyle) { Modifier.fillMaxWidth() }
 }
 
+// ---------------------------------------------------------------------------
+// Generic reusable text styles
+// ---------------------------------------------------------------------------
+
 val HeadlineTextStyle = CssStyle.base {
-    Modifier
-        .fontSize(3.cssRem)
-        .textAlign(TextAlign.Start)
-        .lineHeight(1.2)
-        .fontWeight(FontWeight.Bold)
+    Modifier.fontSize(3.cssRem).textAlign(TextAlign.Start).lineHeight(1.2).fontWeight(FontWeight.Bold)
 }
 
 val SubheadlineTextStyle = CssStyle.base {
@@ -54,9 +53,24 @@ val SubheadlineTextStyle = CssStyle.base {
         .fontSize(1.1.cssRem)
         .textAlign(TextAlign.Start)
         .color(colorMode.toPalette().color.toRgb().copyf(alpha = 0.7f))
+        .lineHeight(1.6)
 }
 
-// Base section container
+val HeadlineCardStyle = CssStyle.base {
+    Modifier.fontSize(1.3.cssRem).fontWeight(FontWeight.SemiBold)
+}
+
+val MonoLabelStyle = CssStyle.base {
+    Modifier
+        .fontSize(0.8.cssRem)
+        .fontFamily("JetBrains Mono", "monospace")
+        .color(colorMode.toSitePalette().textSecondary)
+}
+
+// ---------------------------------------------------------------------------
+// Layout styles
+// ---------------------------------------------------------------------------
+
 val SectionStyle = CssStyle {
     base {
         Modifier
@@ -67,7 +81,6 @@ val SectionStyle = CssStyle {
     }
 }
 
-// Alternating section with slightly different background
 val AltSectionWrapperStyle = CssStyle.base {
     Modifier
         .fillMaxWidth()
@@ -76,12 +89,13 @@ val AltSectionWrapperStyle = CssStyle.base {
 }
 
 val SectionTitleStyle = CssStyle.base {
-    Modifier
-        .fontSize(2.2.cssRem)
-        .fontWeight(FontWeight.Bold)
+    Modifier.fontSize(2.2.cssRem).fontWeight(FontWeight.Bold)
 }
 
-// Cards with 3D tilt + border glow on hover
+// ---------------------------------------------------------------------------
+// Card with 3D tilt + glow border on hover
+// ---------------------------------------------------------------------------
+
 val CardStyle = CssStyle {
     base {
         Modifier
@@ -89,7 +103,6 @@ val CardStyle = CssStyle {
             .borderRadius(1.cssRem)
             .backgroundColor(colorMode.toSitePalette().nearBackground)
             .border(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
-            .styleModifier { property("perspective", "1000px") }
             .transition(
                 Transition.of("transform", 300.ms, TransitionTimingFunction.EaseOut),
                 Transition.of("box-shadow", 300.ms, TransitionTimingFunction.EaseOut),
@@ -98,13 +111,15 @@ val CardStyle = CssStyle {
     }
     cssRule(":hover") {
         Modifier
-            .styleModifier {
-                property("transform", "translateY(-4px) rotateX(2deg) rotateY(-1deg)")
-                property("border-color", colorMode.toSitePalette().brand.primary.toString())
-                property("box-shadow", "0 8px 30px ${colorMode.toSitePalette().brand.primary.toRgb().copyf(alpha = 0.15f)}, 0 0 0 1px ${colorMode.toSitePalette().brand.primary.toRgb().copyf(alpha = 0.1f)}")
-            }
+            .translateY((-4).px)
+            .border(1.px, LineStyle.Solid, colorMode.toSitePalette().brand.primary)
+            .boxShadow(blurRadius = 20.px, color = colorMode.toSitePalette().brand.primary.toRgb().copyf(alpha = 0.15f))
     }
 }
+
+// ---------------------------------------------------------------------------
+// Chip / tag pill
+// ---------------------------------------------------------------------------
 
 val ChipStyle = CssStyle {
     base {
@@ -127,10 +142,26 @@ val ChipStyle = CssStyle {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Shared variants
+// ---------------------------------------------------------------------------
+
 val CircleButtonVariant = ButtonStyle.addVariantBase {
     Modifier.padding(0.px).borderRadius(50.percent)
 }
 
 val UncoloredButtonVariant = ButtonStyle.addVariantBase {
     Modifier.setVariable(ButtonVars.BackgroundDefaultColor, Colors.Transparent)
+}
+
+// ---------------------------------------------------------------------------
+// Utility styles for overflow / user-select / perspective
+// ---------------------------------------------------------------------------
+
+val OverflowHiddenStyle = CssStyle.base {
+    Modifier.overflow { x(Overflow.Hidden); y(Overflow.Hidden) }
+}
+
+val NoSelectStyle = CssStyle.base {
+    Modifier.userSelect(UserSelect.None)
 }

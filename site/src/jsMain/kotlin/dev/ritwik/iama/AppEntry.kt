@@ -60,6 +60,31 @@ private fun loadGoogleFonts() {
         href = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
     }
     head.appendChild(fontLink)
+
+    // SEO meta tags
+    fun addMeta(name: String, content: String) {
+        val meta = document.createElement("meta")
+        meta.setAttribute("name", name)
+        meta.setAttribute("content", content)
+        head.appendChild(meta)
+    }
+    fun addOgMeta(prop: String, content: String) {
+        val meta = document.createElement("meta")
+        meta.setAttribute("property", prop)
+        meta.setAttribute("content", content)
+        head.appendChild(meta)
+    }
+
+    addMeta("author", "Ritwik Raj Srivastava")
+    addMeta("keywords", "Android Developer, Kotlin, Jetpack Compose, Tech Lead, Jio, Software Engineer, MyJio, Design System")
+    addMeta("robots", "index, follow")
+    addOgMeta("og:title", "Ritwik Raj Srivastava - Software Engineer & Tech Lead")
+    addOgMeta("og:description", "6+ years building Android apps at scale. Tech Lead at Jio, MyJio app.")
+    addOgMeta("og:type", "website")
+    addOgMeta("og:url", "https://antimkhel.github.io/IAmA/")
+    addMeta("twitter:card", "summary")
+    addMeta("twitter:title", "Ritwik Raj Srivastava - Software Engineer & Tech Lead")
+    addMeta("twitter:description", "6+ years building Android apps at scale. Tech Lead at Jio.")
 }
 
 private fun injectBlobAnimations() {

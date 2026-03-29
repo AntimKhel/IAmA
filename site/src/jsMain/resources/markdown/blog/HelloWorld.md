@@ -1,6 +1,7 @@
 ---
 title: "Hello World - Why I Built This Site with Kotlin"
 date: "March 29, 2026"
+description: "An Android developer's journey into web development using Compose for Web and Kobweb."
 tags: Kotlin, Kobweb, Web
 ---
 

@@ -1,6 +1,7 @@
 ---
 title: "OTA Updates for React Native Without CodePush"
 date: "March 20, 2026"
+description: "We built our own over-the-air update system for React Native at Jio. Here's the architecture and why we chose this over CodePush."
 tags: React Native, OTA, Architecture
 ---
 

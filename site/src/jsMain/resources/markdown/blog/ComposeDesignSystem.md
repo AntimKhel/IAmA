@@ -1,6 +1,7 @@
 ---
 title: "Building a Design System with Jetpack Compose"
 date: "March 25, 2026"
+description: "How we built the Jio Design System from scratch using Jetpack Compose, and lessons learned scaling it across multiple apps."
 tags: Jetpack Compose, Design System, Android
 ---
 

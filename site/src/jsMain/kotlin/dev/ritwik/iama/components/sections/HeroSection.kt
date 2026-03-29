@@ -9,6 +9,7 @@ import com.varabyte.kobweb.compose.foundation.layout.Row
 import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.modifiers.*
+import com.varabyte.kobweb.compose.css.Overflow
 import com.varabyte.kobweb.compose.ui.styleModifier
 import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.core.rememberPageContext
@@ -43,7 +44,7 @@ val HeroStyle = CssStyle {
             .textAlign(TextAlign.Center)
             .padding(leftRight = 2.cssRem)
             .position(Position.Relative)
-            .styleModifier { property("overflow", "hidden") }
+            .overflow { x(com.varabyte.kobweb.compose.css.Overflow.Hidden); y(com.varabyte.kobweb.compose.css.Overflow.Hidden) }
     }
 }
 
