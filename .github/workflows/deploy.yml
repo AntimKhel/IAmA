@@ -16,8 +16,6 @@ concurrency:
 
 env:
   KOBWEB_CLI_VERSION: 0.9.21
-  # Change this if your repo name changes
-  SITE_BASE_PATH: /IAmA
 
 jobs:
   export:
@@ -45,18 +43,6 @@ jobs:
         run: |
           cd site
           kobweb export --notty --layout static
-
-      - name: Fix paths for GitHub Pages subdirectory
-        run: |
-          cd site/.kobweb/site
-          # Rewrite absolute asset paths to include the base path
-          find . -name "*.html" -exec sed -i \
-            -e "s|src=\"/iama.js\"|src=\"${SITE_BASE_PATH}/iama.js\"|g" \
-            -e "s|href=\"/favicon.ico\"|href=\"${SITE_BASE_PATH}/favicon.ico\"|g" \
-            {} +
-          echo "Fixed asset paths for ${SITE_BASE_PATH}"
-          # Verify
-          grep -l "iama.js" *.html blog/*.html | head -5
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
