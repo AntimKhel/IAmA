@@ -1,5 +1,7 @@
 ---
 title: "OTA Updates for React Native Without CodePush"
+date: "March 20, 2026"
+tags: React Native, OTA, Architecture
 ---
 
 # OTA Updates for React Native Without CodePush

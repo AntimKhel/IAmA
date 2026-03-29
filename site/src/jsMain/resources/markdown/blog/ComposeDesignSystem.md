@@ -1,5 +1,7 @@
 ---
 title: "Building a Design System with Jetpack Compose"
+date: "March 25, 2026"
+tags: Jetpack Compose, Design System, Android
 ---
 
 # Building a Design System with Jetpack Compose

@@ -1,5 +1,6 @@
 site:
   title: "Ritwik Raj Srivastava"
+  routePrefix: "IAmA"
 
 server:
   files:
