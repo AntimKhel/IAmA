@@ -1,0 +1,14 @@
+site:
+  title: "IAmA"
+
+server:
+  files:
+    dev:
+      contentRoot: "build/processedResources/js/main/public"
+      script: "build/kotlin-webpack/js/developmentExecutable/iama.js"
+      api: "build/libs/iama.jar"
+    prod:
+      script: "build/kotlin-webpack/js/productionExecutable/iama.js"
+      siteRoot: ".kobweb/site"
+
+  port: 8080
