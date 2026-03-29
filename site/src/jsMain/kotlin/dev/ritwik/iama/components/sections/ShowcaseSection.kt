@@ -71,38 +71,20 @@ val ShowcaseGridStyle = CssStyle {
             .fillMaxWidth()
             .display(DisplayStyle.Flex)
             .flexWrap(FlexWrap.Wrap)
-            .justifyContent(JustifyContent.Center)
+            .justifyContent(org.jetbrains.compose.web.css.JustifyContent.Center)
             .gap(2.cssRem)
             .styleModifier { property("perspective", "1200px") }
     }
 }
 
-// Individual phone positions with 3D transforms
-val Phone1Style = CssStyle.base {
-    Modifier.styleModifier {
-        property("transform", "rotateY(-8deg) rotateX(3deg) translateZ(20px)")
-    }
-}
-val Phone2Style = CssStyle.base {
-    Modifier.styleModifier {
-        property("transform", "rotateY(-3deg) rotateX(-2deg) translateZ(40px) scale(1.05)")
-    }
-}
-val Phone3Style = CssStyle.base {
-    Modifier.styleModifier {
-        property("transform", "rotateY(0deg) rotateX(0deg) translateZ(60px) scale(1.1)")
-    }
-}
-val Phone4Style = CssStyle.base {
-    Modifier.styleModifier {
-        property("transform", "rotateY(3deg) rotateX(-2deg) translateZ(40px) scale(1.05)")
-    }
-}
-val Phone5Style = CssStyle.base {
-    Modifier.styleModifier {
-        property("transform", "rotateY(8deg) rotateX(3deg) translateZ(20px)")
-    }
-}
+// 3D transform values per phone position
+private val phoneTransforms = listOf(
+    "rotateY(-8deg) rotateX(3deg) translateZ(20px)",
+    "rotateY(-3deg) rotateX(-2deg) translateZ(40px) scale(1.05)",
+    "rotateY(0deg) rotateX(0deg) translateZ(60px) scale(1.1)",
+    "rotateY(3deg) rotateX(-2deg) translateZ(40px) scale(1.05)",
+    "rotateY(8deg) rotateX(3deg) translateZ(20px)",
+)
 
 // Feature label badge
 val FeatureLabelStyle = CssStyle.base {
@@ -150,15 +132,15 @@ val StatLabelStyle = CssStyle.base {
 private data class PhoneShowcase(
     val image: String,
     val label: String,
-    val style: CssStyle,
+    val transform: String,
 )
 
 private val showcasePhones = listOf(
-    PhoneShowcase("/images/myjio-1.webp", "Home Dashboard", Phone1Style),
-    PhoneShowcase("/images/myjio-2.webp", "Recharge Flow", Phone2Style),
-    PhoneShowcase("/images/myjio-3.webp", "Plan Selection", Phone3Style),
-    PhoneShowcase("/images/myjio-4.webp", "Account Hub", Phone4Style),
-    PhoneShowcase("/images/myjio-5.webp", "Jio Services", Phone5Style),
+    PhoneShowcase("/images/myjio-1.webp", "Home Dashboard", phoneTransforms[0]),
+    PhoneShowcase("/images/myjio-2.webp", "Recharge Flow", phoneTransforms[1]),
+    PhoneShowcase("/images/myjio-3.webp", "Plan Selection", phoneTransforms[2]),
+    PhoneShowcase("/images/myjio-4.webp", "Account Hub", phoneTransforms[3]),
+    PhoneShowcase("/images/myjio-5.webp", "Jio Services", phoneTransforms[4]),
 )
 
 private data class Stat(val number: String, val label: String)
@@ -198,7 +180,7 @@ fun ShowcaseSection() {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .justifyContent(JustifyContent.Center)
+                    .justifyContent(org.jetbrains.compose.web.css.JustifyContent.Center)
                     .gap(3.cssRem)
                     .flexWrap(FlexWrap.Wrap)
                     .margin(bottom = 3.cssRem)
@@ -220,7 +202,7 @@ fun ShowcaseSection() {
                     delay = (200 + index * 150).ms,
                 ) {
                     Column(
-                        phone.style.toModifier(),
+                        Modifier.styleModifier { property("transform", phone.transform) },
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Box(PhoneFrameStyle.toModifier()) {
