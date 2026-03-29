@@ -3,13 +3,13 @@ package dev.ritwik.iama.components.sections
 import androidx.compose.runtime.Composable
 import com.varabyte.kobweb.compose.css.FontWeight
 import com.varabyte.kobweb.compose.css.TextAlign
-import com.varabyte.kobweb.compose.ui.styleModifier
 import com.varabyte.kobweb.compose.foundation.layout.Box
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.Row
 import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.modifiers.*
+import com.varabyte.kobweb.compose.ui.styleModifier
 import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.core.rememberPageContext
 import com.varabyte.kobweb.silk.components.forms.Button
@@ -26,7 +26,10 @@ import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 import dev.ritwik.iama.*
+import dev.ritwik.iama.components.widgets.AndroidBotLeft
+import dev.ritwik.iama.components.widgets.AndroidBotRight
 import dev.ritwik.iama.components.widgets.GradientBlobs
+import dev.ritwik.iama.components.widgets.TypewriterText
 
 val HeroStyle = CssStyle {
     base {
@@ -122,29 +125,6 @@ val HeroButtonsStyle = CssStyle {
     }
 }
 
-// Decorative terminal-like badge
-val TerminalBadgeStyle = CssStyle {
-    base {
-        Modifier
-            .padding(topBottom = 0.5.cssRem, leftRight = 1.2.cssRem)
-            .borderRadius(2.cssRem)
-            .fontSize(0.85.cssRem)
-            .fontFamily("JetBrains Mono", "monospace")
-            .margin(bottom = 1.5.cssRem)
-            .border(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
-            .backgroundColor(colorMode.toSitePalette().nearBackground)
-            .animation(
-                HeroFadeIn.toAnimation(
-                    duration = 800.ms,
-                    timingFunction = AnimationTimingFunction.EaseOut,
-                    delay = 100.ms,
-                    fillMode = AnimationFillMode.Both,
-                )
-            )
-    }
-}
-
-// Glowing line separator under hero
 val GlowLineStyle = CssStyle {
     base {
         Modifier
@@ -157,25 +137,42 @@ val GlowLineStyle = CssStyle {
     }
 }
 
+// Scroll-down indicator
+val ScrollIndicatorStyle = CssStyle {
+    base {
+        Modifier
+            .position(Position.Absolute)
+            .bottom(2.cssRem)
+            .left(50.percent)
+            .styleModifier {
+                property("transform", "translateX(-50%)")
+                property("animation", "scroll-bounce 2s ease-in-out infinite")
+            }
+            .opacity(0.6)
+            .fontSize(1.5.cssRem)
+    }
+}
+
 @Composable
 fun HeroSection() {
     val sitePalette = ColorMode.current.toSitePalette()
     val ctx = rememberPageContext()
 
     Box(HeroStyle.toModifier()) {
-        // Animated gradient blobs in the background
+        // Animated gradient blobs
         GradientBlobs()
 
-        // Content on top
+        // Android bots peeking
+        AndroidBotRight()
+        AndroidBotLeft()
+
+        // Content
         Column(
             Modifier.zIndex(1).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // Terminal-like badge
-            Span(TerminalBadgeStyle.toModifier().toAttrs()) {
-                SpanText("> ", Modifier.color(sitePalette.brand.primary))
-                Text("6+ years building Android at scale")
-            }
+            // Typewriter terminal badge
+            TypewriterText()
 
             SpanText(
                 "Ritwik Raj Srivastava",
@@ -187,9 +184,7 @@ fun HeroSection() {
                 HeroSubtitleStyle.toModifier().color(sitePalette.textSecondary)
             )
 
-            Div(
-                HeroTaglineStyle.toModifier().toAttrs()
-            ) {
+            Div(HeroTaglineStyle.toModifier().toAttrs()) {
                 SpanText("Building apps used by ", Modifier.color(sitePalette.textSecondary))
                 SpanText("100M+", Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold))
                 SpanText(" users at ", Modifier.color(sitePalette.textSecondary))
@@ -198,7 +193,10 @@ fun HeroSection() {
 
             Row(HeroButtonsStyle.toModifier()) {
                 Button(
-                    onClick = { ctx.router.tryRoutingTo("/#experience") },
+                    onClick = {
+                        kotlinx.browser.document.getElementById("experience")?.asDynamic()
+                            ?.scrollIntoView(js("({behavior: 'smooth', block: 'start'})"))
+                    },
                     colorPalette = ColorPalettes.Green,
                 ) {
                     SpanText("View Experience")
@@ -213,6 +211,11 @@ fun HeroSection() {
             }
 
             Box(GlowLineStyle.toModifier())
+        }
+
+        // Scroll indicator
+        Span(ScrollIndicatorStyle.toModifier().toAttrs()) {
+            Text("\u2193")
         }
     }
 }

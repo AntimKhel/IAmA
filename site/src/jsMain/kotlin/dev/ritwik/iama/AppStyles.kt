@@ -81,7 +81,7 @@ val SectionTitleStyle = CssStyle.base {
         .fontWeight(FontWeight.Bold)
 }
 
-// Cards with border glow on hover
+// Cards with 3D tilt + border glow on hover
 val CardStyle = CssStyle {
     base {
         Modifier
@@ -89,6 +89,7 @@ val CardStyle = CssStyle {
             .borderRadius(1.cssRem)
             .backgroundColor(colorMode.toSitePalette().nearBackground)
             .border(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
+            .styleModifier { property("perspective", "1000px") }
             .transition(
                 Transition.of("transform", 300.ms, TransitionTimingFunction.EaseOut),
                 Transition.of("box-shadow", 300.ms, TransitionTimingFunction.EaseOut),
@@ -97,10 +98,10 @@ val CardStyle = CssStyle {
     }
     cssRule(":hover") {
         Modifier
-            .translateY((-4).px)
             .styleModifier {
+                property("transform", "translateY(-4px) rotateX(2deg) rotateY(-1deg)")
                 property("border-color", colorMode.toSitePalette().brand.primary.toString())
-                property("box-shadow", "0 0 20px ${colorMode.toSitePalette().brand.primary.toRgb().copyf(alpha = 0.15f)}")
+                property("box-shadow", "0 8px 30px ${colorMode.toSitePalette().brand.primary.toRgb().copyf(alpha = 0.15f)}, 0 0 0 1px ${colorMode.toSitePalette().brand.primary.toRgb().copyf(alpha = 0.1f)}")
             }
     }
 }

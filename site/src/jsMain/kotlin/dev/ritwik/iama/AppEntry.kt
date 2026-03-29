@@ -96,6 +96,23 @@ private fun injectBlobAnimations() {
             50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(61, 220, 132, 0.8); }
             100% { transform: scale(1); box-shadow: 0 0 12px rgba(61, 220, 132, 0.6); }
         }
+        @keyframes cursor-blink {
+            50% { opacity: 0; }
+        }
+        @keyframes bot-peek-right {
+            0% { transform: translateX(60%) rotate(5deg); }
+            50% { transform: translateX(20%) rotate(-2deg); }
+            100% { transform: translateX(60%) rotate(5deg); }
+        }
+        @keyframes bot-peek-left {
+            0% { transform: scaleX(-1) translateX(60%) rotate(-5deg); }
+            50% { transform: scaleX(-1) translateX(20%) rotate(2deg); }
+            100% { transform: scaleX(-1) translateX(60%) rotate(-5deg); }
+        }
+        @keyframes scroll-bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.6; }
+            50% { transform: translateX(-50%) translateY(10px); opacity: 1; }
+        }
     """.trimIndent()
     head.appendChild(style)
 }
