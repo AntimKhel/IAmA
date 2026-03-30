@@ -7,6 +7,11 @@ import com.varabyte.kobweb.compose.foundation.layout.Row
 import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.modifiers.*
+import com.varabyte.kobweb.silk.components.icons.fa.FaGithub
+import com.varabyte.kobweb.silk.components.icons.fa.FaLinkedin
+import com.varabyte.kobweb.silk.components.icons.fa.FaTwitter
+import com.varabyte.kobweb.silk.components.icons.fa.FaYoutube
+import com.varabyte.kobweb.silk.components.icons.fa.IconSize
 import com.varabyte.kobweb.silk.components.navigation.Link
 import com.varabyte.kobweb.silk.components.navigation.UncoloredLinkVariant
 import com.varabyte.kobweb.silk.components.text.SpanText
@@ -32,35 +37,37 @@ fun Footer(modifier: Modifier = Modifier) {
         FooterStyle.toModifier().then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Contact links
         Row(
-            Modifier.gap(2.cssRem).margin(bottom = 1.cssRem),
+            Modifier.gap(1.5.cssRem).margin(bottom = 1.cssRem),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Link(
-                "mailto:raj.ritwik96@gmail.com",
-                "Email",
-                Modifier.setVariable(ColorVar, sitePalette.brand.primary),
+                "https://twitter.com",
+                Modifier.setVariable(ColorVar, sitePalette.textSecondary),
                 variant = UncoloredLinkVariant,
-            )
-            SpanText("|", Modifier.color(sitePalette.textSecondary))
+            ) { FaTwitter(size = IconSize.LG) }
+
             Link(
                 "https://www.linkedin.com/in/ritwik787/",
-                "LinkedIn",
-                Modifier.setVariable(ColorVar, sitePalette.brand.primary),
+                Modifier.setVariable(ColorVar, sitePalette.textSecondary),
                 variant = UncoloredLinkVariant,
-            )
-            SpanText("|", Modifier.color(sitePalette.textSecondary))
+            ) { FaLinkedin(size = IconSize.LG) }
+
             Link(
                 "https://github.com/ritwik-srivastava",
-                "GitHub",
-                Modifier.setVariable(ColorVar, sitePalette.brand.primary),
+                Modifier.setVariable(ColorVar, sitePalette.textSecondary),
                 variant = UncoloredLinkVariant,
-            )
+            ) { FaGithub(size = IconSize.LG) }
+
+            Link(
+                "https://youtube.com",
+                Modifier.setVariable(ColorVar, sitePalette.textSecondary),
+                variant = UncoloredLinkVariant,
+            ) { FaYoutube(size = IconSize.LG) }
         }
 
         SpanText(
-            "Built with Kotlin & Kobweb | Ritwik Raj Srivastava",
+            "\u00a9 2026 Ritwik Raj Srivastava \u00b7 Built with Kotlin & Kobweb",
             Modifier
                 .fontSize(0.85.cssRem)
                 .color(sitePalette.textSecondary)

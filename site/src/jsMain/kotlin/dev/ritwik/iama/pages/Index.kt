@@ -24,7 +24,6 @@ fun initHomePage(ctx: InitRouteContext) {
 @Composable
 fun HomePage() {
     HeroSection()
-    AboutSection()
     Box(AltSectionWrapperStyle.toModifier().fillMaxWidth()) {
         ShowcaseSection()
     }
@@ -32,8 +31,5 @@ fun HomePage() {
     Box(AltSectionWrapperStyle.toModifier().fillMaxWidth()) {
         SkillsSection()
     }
-    EducationSection()
-    Box(AltSectionWrapperStyle.toModifier().fillMaxWidth()) {
-        CertSection()
-    }
+    CertSection()
 }

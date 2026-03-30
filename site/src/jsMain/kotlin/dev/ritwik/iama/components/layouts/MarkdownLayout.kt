@@ -191,7 +191,8 @@ val MarkdownContentStyle = CssStyle {
 
 @InitRoute
 fun initMarkdownLayout(ctx: InitRouteContext) {
-    val title = ctx.markdown!!.frontMatter["title"]?.singleOrNull()
+    val markdown = ctx.markdown ?: error("MarkdownLayout used on a non-markdown page")
+    val title = markdown.frontMatter["title"]?.singleOrNull()
     require(title != null) { "Markdown file must set \"title\" in frontmatter" }
     ctx.data.add(PageLayoutData(title))
 }

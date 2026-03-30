@@ -18,6 +18,25 @@ fun ScrollReveal(
     content: @Composable () -> Unit,
 ) {
     var isVisible by remember { mutableStateOf(false) }
+    var element by remember { mutableStateOf<org.w3c.dom.Element?>(null) }
+
+    DisposableEffect(element) {
+        val el = element ?: return@DisposableEffect onDispose {}
+        val options = js("({threshold: 0.15})")
+        val callback: (dynamic, dynamic) -> Unit = { entries, _ ->
+            val arr = entries as Array<dynamic>
+            for (entry in arr) {
+                if (entry.isIntersecting as Boolean) {
+                    isVisible = true
+                }
+            }
+        }
+        @Suppress("UNUSED_VARIABLE")
+        val cb = callback
+        val observer = js("new IntersectionObserver(cb, options)")
+        observer.observe(el)
+        onDispose { observer.disconnect() }
+    }
 
     val animModifier = if (isVisible) {
         Modifier.animation(
@@ -32,28 +51,12 @@ fun ScrollReveal(
         Modifier.opacity(0)
     }
 
-    Div(
-        modifier.then(animModifier).toAttrs {
-            ref { element ->
-                val options = js("({threshold: 0.15})")
-                val callback: (dynamic, dynamic) -> Unit = { entries, _ ->
-                    val arr = entries as Array<dynamic>
-                    for (entry in arr) {
-                        if (entry.isIntersecting as Boolean) {
-                            isVisible = true
-                        }
-                    }
-                }
-                @Suppress("UNUSED_VARIABLE")
-                val cb = callback
-                val observer = js("new IntersectionObserver(cb, options)")
-                observer.observe(element)
-                onDispose {
-                    observer.disconnect()
-                }
-            }
+    Div(modifier.then(animModifier).toAttrs {
+        ref { el ->
+            element = el
+            onDispose { element = null }
         }
-    ) {
+    }) {
         content()
     }
 }

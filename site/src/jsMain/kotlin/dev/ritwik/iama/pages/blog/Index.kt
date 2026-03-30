@@ -16,6 +16,7 @@ import com.varabyte.kobweb.silk.components.text.SpanText
 import com.varabyte.kobweb.silk.style.toModifier
 import com.varabyte.kobweb.silk.style.vars.color.ColorVar
 import com.varabyte.kobweb.silk.theme.colors.ColorMode
+import com.varabyte.kobweb.compose.css.*
 import org.jetbrains.compose.web.css.*
 import dev.ritwik.iama.*
 import dev.ritwik.iama.blog.BlogEntry

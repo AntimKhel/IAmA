@@ -1,15 +1,13 @@
 package dev.ritwik.iama.components.sections
 
 import androidx.compose.runtime.Composable
-import com.varabyte.kobweb.compose.css.FontWeight
-import com.varabyte.kobweb.compose.css.TextAlign
+import com.varabyte.kobweb.compose.css.*
 import com.varabyte.kobweb.compose.foundation.layout.Box
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.Row
 import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.modifiers.*
-import com.varabyte.kobweb.compose.css.Overflow
 import com.varabyte.kobweb.compose.ui.styleModifier
 import com.varabyte.kobweb.compose.ui.toAttrs
 import com.varabyte.kobweb.core.rememberPageContext
@@ -39,8 +37,8 @@ val HeroStyle = CssStyle {
             .minHeight(100.vh)
             .display(DisplayStyle.Flex)
             .flexDirection(FlexDirection.Column)
-            .justifyContent(JustifyContent.Center)
-            .alignItems(AlignItems.Center)
+            .justifyContent(org.jetbrains.compose.web.css.JustifyContent.Center)
+            .alignItems(org.jetbrains.compose.web.css.AlignItems.Center)
             .textAlign(TextAlign.Center)
             .padding(leftRight = 2.cssRem)
             .position(Position.Relative)
@@ -114,7 +112,7 @@ val HeroButtonsStyle = CssStyle {
             .gap(1.cssRem)
             .display(DisplayStyle.Flex)
             .flexWrap(FlexWrap.Wrap)
-            .justifyContent(JustifyContent.Center)
+            .justifyContent(org.jetbrains.compose.web.css.JustifyContent.Center)
             .animation(
                 HeroFadeIn.toAnimation(
                     duration = 800.ms,
@@ -185,11 +183,21 @@ fun HeroSection() {
                 HeroSubtitleStyle.toModifier().color(sitePalette.textSecondary)
             )
 
-            Div(HeroTaglineStyle.toModifier().toAttrs()) {
-                SpanText("Building apps used by ", Modifier.color(sitePalette.textSecondary))
-                SpanText("100M+", Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold))
-                SpanText(" users at ", Modifier.color(sitePalette.textSecondary))
-                SpanText("Jio", Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold))
+            // Bullet points matching Stitch design
+            Column(
+                HeroTaglineStyle.toModifier().gap(0.3.cssRem),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Div(Modifier.toAttrs()) {
+                    SpanText("\u2022 Built ", Modifier.color(sitePalette.textSecondary))
+                    SpanText("Jio Design System", Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold))
+                    SpanText(" in Compose", Modifier.color(sitePalette.textSecondary))
+                }
+                Div(Modifier.toAttrs()) {
+                    SpanText("\u2022 Building apps for ", Modifier.color(sitePalette.textSecondary))
+                    SpanText("100M+", Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold))
+                    SpanText(" users", Modifier.color(sitePalette.textSecondary))
+                }
             }
 
             Row(HeroButtonsStyle.toModifier()) {

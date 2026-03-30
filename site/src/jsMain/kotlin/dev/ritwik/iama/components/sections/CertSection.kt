@@ -1,7 +1,7 @@
 package dev.ritwik.iama.components.sections
 
 import androidx.compose.runtime.Composable
-import com.varabyte.kobweb.compose.css.FontWeight
+import com.varabyte.kobweb.compose.css.*
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.Row
 import com.varabyte.kobweb.compose.ui.Modifier
@@ -25,26 +25,23 @@ fun CertSection() {
             SectionHeader("Certifications & Awards")
         }
 
-        // Certifications grid
         Row(Modifier.fillMaxWidth().flexWrap(FlexWrap.Wrap).gap(1.5.cssRem)) {
             certifications.forEachIndexed { index, cert ->
                 ScrollReveal(
                     keyframes = PopIn,
                     delay = (index * 100).ms,
-                    modifier = Modifier,
                 ) {
                     CertCard(cert)
                 }
             }
         }
 
-        // Awards
         ScrollReveal(
             keyframes = FadeInUp,
             delay = 300.ms,
-            modifier = Modifier.margin(top = 3.cssRem),
+            modifier = Modifier.margin(top = 2.5.cssRem),
         ) {
-            Column(Modifier.fillMaxWidth().gap(1.cssRem)) {
+            Column(Modifier.fillMaxWidth().gap(0.75.cssRem)) {
                 SpanText(
                     "Awards",
                     Modifier
@@ -52,7 +49,7 @@ fun CertSection() {
                         .fontWeight(FontWeight.SemiBold)
                         .color(ColorMode.current.toSitePalette().brand.primary)
                 )
-                Ul(Modifier.padding(left = 1.2.cssRem).toAttrs()) {
+                Ul(Modifier.padding(left = 1.2.cssRem).margin(top = 0.25.cssRem).toAttrs()) {
                     awards.forEach { award ->
                         Li(Modifier.margin(bottom = 0.4.cssRem).lineHeight(1.6).toAttrs()) {
                             Text(award)
@@ -70,7 +67,7 @@ private fun CertCard(cert: Certification) {
 
     Column(
         CardStyle.toModifier()
-            .width(18.cssRem)
+            .width(16.cssRem)
             .gap(0.4.cssRem)
     ) {
         SpanText(

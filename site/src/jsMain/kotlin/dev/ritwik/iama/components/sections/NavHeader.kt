@@ -84,7 +84,7 @@ private fun MenuItems(onNavigate: () -> Unit = {}) {
     val router = com.varabyte.kobweb.core.rememberPageContext().router
     val navMod = Modifier.cursor(Cursor.Pointer).userSelect(UserSelect.None)
 
-    listOf("about" to "About", "experience" to "Experience", "skills" to "Skills", "education" to "Education", "certifications" to "Certs").forEach { (id, label) ->
+    listOf("experience" to "Experience", "skills" to "Skills", "certifications" to "Certs").forEach { (id, label) ->
         Span(navMod.onClick { navigateToSection(id, router); onNavigate() }.toAttrs()) { Text(label) }
     }
     Link("/blog", "Blog", variant = UndecoratedLinkVariant.then(UncoloredLinkVariant))
@@ -150,7 +150,7 @@ fun NavHeader() {
             .boxShadow(
                 offsetY = 2.px,
                 blurRadius = 10.px,
-                color = com.varabyte.kobweb.compose.ui.graphics.Color.rgba(0, 0, 0, 0.1f)
+                color = sitePalette.border
             )
             .padding(topBottom = 0.6.cssRem, leftRight = 2.cssRem)
     } else Modifier
