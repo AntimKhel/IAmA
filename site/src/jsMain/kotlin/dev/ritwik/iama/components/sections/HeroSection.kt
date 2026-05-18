@@ -157,7 +157,31 @@ fun HeroSection() {
     val sitePalette = ColorMode.current.toSitePalette()
     val ctx = rememberPageContext()
 
-    Box(HeroStyle.toModifier()) {
+    var rotationX by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0f) }
+    var rotationY by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0f) }
+
+    Box(
+        HeroStyle.toModifier()
+            .onMouseMove { evt ->
+                val target = evt.target.asDynamic()
+                val rect = target.getBoundingClientRect()
+                val x = evt.clientX - rect.left
+                val y = evt.clientY - rect.top
+                val centerX = rect.width / 2
+                val centerY = rect.height / 2
+                
+                // Tilt amount (max 15 degrees)
+                rotationY = ((x - centerX) / centerX).toString().toFloat() * 15f
+                rotationX = -((y - centerY) / centerY).toString().toFloat() * 15f
+            }
+            .onMouseLeave {
+                rotationX = 0f
+                rotationY = 0f
+            }
+            .styleModifier {
+                property("perspective", "1200px")
+            }
+    ) {
         // Animated gradient blobs
         GradientBlobs()
 
@@ -167,7 +191,12 @@ fun HeroSection() {
 
         // Content
         Column(
-            Modifier.zIndex(1).fillMaxWidth(),
+            Modifier.zIndex(1).fillMaxWidth()
+                .styleModifier {
+                    property("transform", "translateZ(50px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)")
+                    property("transition", "transform 0.1s ease-out")
+                    property("transform-style", "preserve-3d")
+                },
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Typewriter terminal badge
@@ -175,17 +204,17 @@ fun HeroSection() {
 
             SpanText(
                 "Ritwik Raj Srivastava",
-                HeroNameStyle.toModifier()
+                HeroNameStyle.toModifier().styleModifier { property("transform", "translateZ(60px)") }
             )
 
             SpanText(
                 "Software Engineer | Tech Lead - Android",
-                HeroSubtitleStyle.toModifier().color(sitePalette.textSecondary)
+                HeroSubtitleStyle.toModifier().color(sitePalette.textSecondary).styleModifier { property("transform", "translateZ(40px)") }
             )
 
             // Bullet points matching Stitch design
             Column(
-                HeroTaglineStyle.toModifier().gap(0.3.cssRem),
+                HeroTaglineStyle.toModifier().gap(0.3.cssRem).styleModifier { property("transform", "translateZ(30px)") },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Div(Modifier.toAttrs()) {
@@ -200,7 +229,7 @@ fun HeroSection() {
                 }
             }
 
-            Row(HeroButtonsStyle.toModifier()) {
+            Row(HeroButtonsStyle.toModifier().styleModifier { property("transform", "translateZ(50px)") }) {
                 Button(
                     onClick = {
                         kotlinx.browser.document.getElementById("experience")?.asDynamic()
@@ -219,7 +248,7 @@ fun HeroSection() {
                 }
             }
 
-            Box(GlowLineStyle.toModifier())
+            Box(GlowLineStyle.toModifier().styleModifier { property("transform", "translateZ(20px)") })
         }
 
         // Scroll indicator
