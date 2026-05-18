@@ -20,135 +20,125 @@ import com.varabyte.kobweb.silk.style.breakpoint.Breakpoint
 import com.varabyte.kobweb.silk.style.toModifier
 import com.varabyte.kobweb.silk.theme.colors.ColorMode
 import com.varabyte.kobweb.silk.theme.colors.ColorPalettes
-import org.jetbrains.compose.web.css.*
-import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.Span
-import org.jetbrains.compose.web.dom.Text
 import dev.ritwik.iama.*
 import dev.ritwik.iama.components.widgets.AndroidBotLeft
 import dev.ritwik.iama.components.widgets.AndroidBotRight
 import dev.ritwik.iama.components.widgets.GradientBlobs
 import dev.ritwik.iama.components.widgets.TypewriterText
+import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.dom.Div
+import org.jetbrains.compose.web.dom.Span
+import org.jetbrains.compose.web.dom.Text
 
 val HeroStyle = CssStyle {
     base {
-        Modifier
-            .fillMaxWidth()
-            .minHeight(100.vh)
-            .display(DisplayStyle.Flex)
-            .flexDirection(FlexDirection.Column)
-            .justifyContent(org.jetbrains.compose.web.css.JustifyContent.Center)
-            .alignItems(org.jetbrains.compose.web.css.AlignItems.Center)
-            .textAlign(TextAlign.Center)
-            .padding(leftRight = 2.cssRem)
-            .position(Position.Relative)
-            .overflow { x(com.varabyte.kobweb.compose.css.Overflow.Hidden); y(com.varabyte.kobweb.compose.css.Overflow.Hidden) }
+        Modifier.fillMaxWidth()
+                .minHeight(100.vh)
+                .display(DisplayStyle.Flex)
+                .flexDirection(FlexDirection.Column)
+                .justifyContent(org.jetbrains.compose.web.css.JustifyContent.Center)
+                .alignItems(org.jetbrains.compose.web.css.AlignItems.Center)
+                .textAlign(TextAlign.Center)
+                .padding(leftRight = 2.cssRem)
+                .position(Position.Relative)
+                .overflow {
+                    x(com.varabyte.kobweb.compose.css.Overflow.Hidden)
+                    y(com.varabyte.kobweb.compose.css.Overflow.Hidden)
+                }
     }
 }
 
 val HeroNameStyle = CssStyle {
     base {
-        Modifier
-            .fontSize(2.5.cssRem)
-            .fontWeight(FontWeight.Bold)
-            .lineHeight(1.2)
-            .animation(
-                HeroFadeIn.toAnimation(
-                    duration = 800.ms,
-                    timingFunction = AnimationTimingFunction.EaseOut,
-                    fillMode = AnimationFillMode.Both,
+        Modifier.fontSize(2.5.cssRem)
+                .fontWeight(FontWeight.Bold)
+                .lineHeight(1.2)
+                .animation(
+                        HeroFadeIn.toAnimation(
+                                duration = 800.ms,
+                                timingFunction = AnimationTimingFunction.EaseOut,
+                                fillMode = AnimationFillMode.Both,
+                        )
                 )
-            )
     }
-    Breakpoint.MD {
-        Modifier.fontSize(4.5.cssRem)
-    }
+    Breakpoint.MD { Modifier.fontSize(4.5.cssRem) }
 }
 
 val HeroSubtitleStyle = CssStyle {
     base {
-        Modifier
-            .fontSize(1.1.cssRem)
-            .fontWeight(FontWeight.Normal)
-            .margin(top = 1.cssRem)
-            .animation(
-                HeroFadeIn.toAnimation(
-                    duration = 800.ms,
-                    timingFunction = AnimationTimingFunction.EaseOut,
-                    delay = 200.ms,
-                    fillMode = AnimationFillMode.Both,
+        Modifier.fontSize(1.1.cssRem)
+                .fontWeight(FontWeight.Normal)
+                .margin(top = 1.cssRem)
+                .animation(
+                        HeroFadeIn.toAnimation(
+                                duration = 800.ms,
+                                timingFunction = AnimationTimingFunction.EaseOut,
+                                delay = 200.ms,
+                                fillMode = AnimationFillMode.Both,
+                        )
                 )
-            )
     }
-    Breakpoint.MD {
-        Modifier.fontSize(1.4.cssRem)
-    }
+    Breakpoint.MD { Modifier.fontSize(1.4.cssRem) }
 }
 
 val HeroTaglineStyle = CssStyle {
     base {
-        Modifier
-            .fontSize(1.cssRem)
-            .margin(top = 0.75.cssRem)
-            .fontFamily("JetBrains Mono", "monospace")
-            .animation(
-                HeroFadeIn.toAnimation(
-                    duration = 800.ms,
-                    timingFunction = AnimationTimingFunction.EaseOut,
-                    delay = 400.ms,
-                    fillMode = AnimationFillMode.Both,
+        Modifier.fontSize(1.cssRem)
+                .margin(top = 0.75.cssRem)
+                .fontFamily("JetBrains Mono", "monospace")
+                .animation(
+                        HeroFadeIn.toAnimation(
+                                duration = 800.ms,
+                                timingFunction = AnimationTimingFunction.EaseOut,
+                                delay = 400.ms,
+                                fillMode = AnimationFillMode.Both,
+                        )
                 )
-            )
     }
-    Breakpoint.MD {
-        Modifier.fontSize(1.1.cssRem)
-    }
+    Breakpoint.MD { Modifier.fontSize(1.1.cssRem) }
 }
 
 val HeroButtonsStyle = CssStyle {
     base {
-        Modifier
-            .margin(top = 2.5.cssRem)
-            .gap(1.cssRem)
-            .display(DisplayStyle.Flex)
-            .flexWrap(FlexWrap.Wrap)
-            .justifyContent(org.jetbrains.compose.web.css.JustifyContent.Center)
-            .animation(
-                HeroFadeIn.toAnimation(
-                    duration = 800.ms,
-                    timingFunction = AnimationTimingFunction.EaseOut,
-                    delay = 600.ms,
-                    fillMode = AnimationFillMode.Both,
+        Modifier.margin(top = 2.5.cssRem)
+                .gap(1.cssRem)
+                .display(DisplayStyle.Flex)
+                .flexWrap(FlexWrap.Wrap)
+                .justifyContent(org.jetbrains.compose.web.css.JustifyContent.Center)
+                .animation(
+                        HeroFadeIn.toAnimation(
+                                duration = 800.ms,
+                                timingFunction = AnimationTimingFunction.EaseOut,
+                                delay = 600.ms,
+                                fillMode = AnimationFillMode.Both,
+                        )
                 )
-            )
     }
 }
 
 val GlowLineStyle = CssStyle {
     base {
-        Modifier
-            .width(8.cssRem)
-            .height(3.px)
-            .borderRadius(2.px)
-            .margin(top = 3.cssRem)
-            .background(colorMode.toSitePalette().brand.primary)
-            .styleModifier { property("animation", "glow-pulse 3s ease-in-out infinite") }
+        Modifier.width(8.cssRem)
+                .height(3.px)
+                .borderRadius(2.px)
+                .margin(top = 3.cssRem)
+                .background(colorMode.toSitePalette().brand.primary)
+                .styleModifier { property("animation", "glow-pulse 3s ease-in-out infinite") }
     }
 }
 
 // Scroll-down indicator
 val ScrollIndicatorStyle = CssStyle {
     base {
-        Modifier
-            .position(Position.Absolute)
-            .bottom(2.cssRem)
-            .left(50.percent)
-            .styleModifier {
-                property("transform", "translateX(-50%)")
-                property("animation", "scroll-bounce 2s ease-in-out infinite")
-            }
-            .opacity(0.6)
-            .fontSize(1.5.cssRem)
+        Modifier.position(Position.Absolute)
+                .bottom(2.cssRem)
+                .left(50.percent)
+                .styleModifier {
+                    property("transform", "translateX(-50%)")
+                    property("animation", "scroll-bounce 2s ease-in-out infinite")
+                }
+                .opacity(0.6)
+                .fontSize(1.5.cssRem)
     }
 }
 
@@ -157,31 +147,7 @@ fun HeroSection() {
     val sitePalette = ColorMode.current.toSitePalette()
     val ctx = rememberPageContext()
 
-    var rotationX by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0f) }
-    var rotationY by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0f) }
-
-    Box(
-        HeroStyle.toModifier()
-            .onMouseMove { evt ->
-                val target = evt.target.asDynamic()
-                val rect = target.getBoundingClientRect()
-                val x = evt.clientX - rect.left
-                val y = evt.clientY - rect.top
-                val centerX = rect.width / 2
-                val centerY = rect.height / 2
-                
-                // Tilt amount (max 15 degrees)
-                rotationY = ((x - centerX) / centerX).toString().toFloat() * 15f
-                rotationX = -((y - centerY) / centerY).toString().toFloat() * 15f
-            }
-            .onMouseLeave {
-                rotationX = 0f
-                rotationY = 0f
-            }
-            .styleModifier {
-                property("perspective", "1200px")
-            }
-    ) {
+    Box(HeroStyle.toModifier()) {
         // Animated gradient blobs
         GradientBlobs()
 
@@ -191,69 +157,64 @@ fun HeroSection() {
 
         // Content
         Column(
-            Modifier.zIndex(1).fillMaxWidth()
-                .styleModifier {
-                    property("transform", "translateZ(50px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)")
-                    property("transition", "transform 0.1s ease-out")
-                    property("transform-style", "preserve-3d")
-                },
-            horizontalAlignment = Alignment.CenterHorizontally,
+                Modifier.zIndex(1).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Typewriter terminal badge
             TypewriterText()
 
-            SpanText(
-                "Ritwik Raj Srivastava",
-                HeroNameStyle.toModifier().styleModifier { property("transform", "translateZ(60px)") }
-            )
+            SpanText("Ritwik Raj Srivastava", HeroNameStyle.toModifier())
 
             SpanText(
-                "Software Engineer | Tech Lead - Android",
-                HeroSubtitleStyle.toModifier().color(sitePalette.textSecondary).styleModifier { property("transform", "translateZ(40px)") }
+                    "Software Engineer | Tech Lead - Android",
+                    HeroSubtitleStyle.toModifier().color(sitePalette.textSecondary)
             )
 
             // Bullet points matching Stitch design
             Column(
-                HeroTaglineStyle.toModifier().gap(0.3.cssRem).styleModifier { property("transform", "translateZ(30px)") },
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    HeroTaglineStyle.toModifier().gap(0.3.cssRem),
+                    horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Div(Modifier.toAttrs()) {
                     SpanText("\u2022 Built ", Modifier.color(sitePalette.textSecondary))
-                    SpanText("Jio Design System", Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold))
+                    SpanText(
+                            "Jio Design System",
+                            Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold)
+                    )
                     SpanText(" in Compose", Modifier.color(sitePalette.textSecondary))
                 }
                 Div(Modifier.toAttrs()) {
                     SpanText("\u2022 Building apps for ", Modifier.color(sitePalette.textSecondary))
-                    SpanText("100M+", Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold))
+                    SpanText(
+                            "100M+",
+                            Modifier.color(sitePalette.brand.primary).fontWeight(FontWeight.Bold)
+                    )
                     SpanText(" users", Modifier.color(sitePalette.textSecondary))
                 }
             }
 
-            Row(HeroButtonsStyle.toModifier().styleModifier { property("transform", "translateZ(50px)") }) {
+            Row(HeroButtonsStyle.toModifier()) {
                 Button(
-                    onClick = {
-                        kotlinx.browser.document.getElementById("experience")?.asDynamic()
-                            ?.scrollIntoView(js("({behavior: 'smooth', block: 'start'})"))
-                    },
-                    colorPalette = ColorPalettes.Green,
-                ) {
-                    SpanText("View Experience")
-                }
+                        onClick = {
+                            kotlinx.browser
+                                    .document
+                                    .getElementById("experience")
+                                    ?.asDynamic()
+                                    ?.scrollIntoView(js("({behavior: 'smooth', block: 'start'})"))
+                        },
+                        colorPalette = ColorPalettes.Green,
+                ) { SpanText("View Experience") }
 
                 Button(
-                    onClick = { ctx.router.tryRoutingTo("/blog") },
-                    colorPalette = ColorPalettes.Blue,
-                ) {
-                    SpanText("Read Blog")
-                }
+                        onClick = { ctx.router.tryRoutingTo("/blog") },
+                        colorPalette = ColorPalettes.Blue,
+                ) { SpanText("Read Blog") }
             }
 
-            Box(GlowLineStyle.toModifier().styleModifier { property("transform", "translateZ(20px)") })
+            Box(GlowLineStyle.toModifier())
         }
 
         // Scroll indicator
-        Span(ScrollIndicatorStyle.toModifier().toAttrs()) {
-            Text("\u2193")
-        }
+        Span(ScrollIndicatorStyle.toModifier().toAttrs()) { Text("\u2193") }
     }
 }
