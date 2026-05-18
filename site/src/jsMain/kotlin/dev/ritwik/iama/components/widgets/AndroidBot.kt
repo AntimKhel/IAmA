@@ -75,8 +75,8 @@ fun AndroidBotRight() {
         })
         
         // Eyes
-        Circle(attrs = { cx(35); cy(45); r(3.5); fill(com.varabyte.kobweb.compose.ui.graphics.Colors.White) })
-        Circle(attrs = { cx(65); cy(45); r(3.5); fill(com.varabyte.kobweb.compose.ui.graphics.Colors.White) })
+        Circle(attrs = { cx(35); cy(45); r(3.5); fill(org.jetbrains.compose.web.css.Color.white) })
+        Circle(attrs = { cx(65); cy(45); r(3.5); fill(org.jetbrains.compose.web.css.Color.white) })
         
         // Body (rounded rectangle with separated top)
         Path(attrs = {
@@ -110,8 +110,8 @@ fun AndroidBotLeft() {
         })
         
         // Eyes
-        Circle(attrs = { cx(35); cy(45); r(3.5); fill(com.varabyte.kobweb.compose.ui.graphics.Colors.White) })
-        Circle(attrs = { cx(65); cy(45); r(3.5); fill(com.varabyte.kobweb.compose.ui.graphics.Colors.White) })
+        Circle(attrs = { cx(35); cy(45); r(3.5); fill(org.jetbrains.compose.web.css.Color.white) })
+        Circle(attrs = { cx(65); cy(45); r(3.5); fill(org.jetbrains.compose.web.css.Color.white) })
         
         // Body
         Path(attrs = {

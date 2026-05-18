@@ -1,6 +1,8 @@
 package dev.ritwik.iama.components.sections
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.varabyte.kobweb.compose.css.*
 import com.varabyte.kobweb.compose.foundation.layout.Box
 import com.varabyte.kobweb.compose.foundation.layout.Column
@@ -165,14 +167,18 @@ fun HeroSection() {
             .onMouseMove { evt ->
                 val target = evt.target.asDynamic()
                 val rect = target.getBoundingClientRect()
-                val x = evt.clientX - rect.left
-                val y = evt.clientY - rect.top
-                val centerX = rect.width / 2
-                val centerY = rect.height / 2
+                val left = (rect.left as Number).toDouble()
+                val top = (rect.top as Number).toDouble()
+                val width = (rect.width as Number).toDouble()
+                val height = (rect.height as Number).toDouble()
+                val x = evt.clientX.toDouble() - left
+                val y = evt.clientY.toDouble() - top
+                val centerX = width / 2.0
+                val centerY = height / 2.0
                 
                 // Tilt amount (max 15 degrees)
-                rotationY = ((x - centerX) / centerX).toString().toFloat() * 15f
-                rotationX = -((y - centerY) / centerY).toString().toFloat() * 15f
+                rotationY = ((x - centerX) / centerX).toFloat() * 15f
+                rotationX = -((y - centerY) / centerY).toFloat() * 15f
             }
             .onMouseLeave {
                 rotationX = 0f
