@@ -288,23 +288,25 @@ pause
 # ── 5 ─────────────────────────────────────────────────────────────────────
 stage "Deploy the Worker"
 say "Publishing the API to Cloudflare on a free workers.dev URL."
-note "First deploy on a new account needs a one-time workers.dev subdomain; the wizard"
-note "opens the page for it if Cloudflare asks."
+note "First deploy on a new account needs a one-time workers.dev subdomain; if so,"
+note "wrangler will ask you to pick one."
 API_URL=""
 for attempt in 1 2 3; do
-  # Output is captured to find the URL, which makes wrangler non-interactive; so the
-  # subdomain prompt can't be answered here, and we route that through the dashboard instead.
+  # Output is captured to find the URL, which makes wrangler non-interactive, so a
+  # subdomain prompt can't be answered here; that case re-runs wrangler interactively below.
   wr deploy 2>&1 | tee /tmp/iama-deploy.log || true
   API_URL=$(grep -Eo 'https://[a-z0-9.-]+\.workers\.dev' /tmp/iama-deploy.log | head -n1 || true)
   [[ -n "$API_URL" ]] && break
   if grep -q "register a workers.dev subdomain" /tmp/iama-deploy.log; then
-    onboarding=$(grep -Eo 'https://dash\.cloudflare\.com/[^ ]*/workers/onboarding' /tmp/iama-deploy.log | head -n1 || true)
+    # Run wrangler once with the terminal attached so it can ask for the subdomain itself
+    # (the onboarding link it prints can 404 in the current dashboard).
     printf '\n'
     warn "Your account needs a workers.dev subdomain first (one-time)."
-    open_url "${onboarding:-https://dash.cloudflare.com/?to=/:account/workers/onboarding}"
-    step "Choose a subdomain (e.g. 'ritwik'); the API will live at iama-api.<it>.workers.dev."
-    step "Confirm it on that page. It can take a minute to become active."
-    pause "Press Enter once it's registered, and the wizard will retry the deploy"
+    step "Wrangler will now ask: 'Would you like to register a workers.dev subdomain now?'"
+    step "Answer y, then type a name (e.g. 'ritwik'); the API will live at iama-api.<it>.workers.dev."
+    pause "Press Enter to start"
+    wr deploy || true
+    note "Capturing the deployed URL…"
   else
     warn "Deploy didn't finish (see the output above)."
     confirm "Retry the deploy?" || break
