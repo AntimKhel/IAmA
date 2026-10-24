@@ -287,10 +287,29 @@ pause
 
 # ── 5 ─────────────────────────────────────────────────────────────────────
 stage "Deploy the Worker"
-say "Publishing the API to Cloudflare (free workers.dev URL)."
-note "If wrangler asks to register a workers.dev subdomain, pick any name you like."
-wr deploy 2>&1 | tee /tmp/iama-deploy.log
-API_URL=$(grep -Eo 'https://[a-z0-9.-]+\.workers\.dev' /tmp/iama-deploy.log | head -n1 || true)
+say "Publishing the API to Cloudflare on a free workers.dev URL."
+note "First deploy on a new account needs a one-time workers.dev subdomain; the wizard"
+note "opens the page for it if Cloudflare asks."
+API_URL=""
+for attempt in 1 2 3; do
+  # Output is captured to find the URL, which makes wrangler non-interactive; so the
+  # subdomain prompt can't be answered here, and we route that through the dashboard instead.
+  wr deploy 2>&1 | tee /tmp/iama-deploy.log || true
+  API_URL=$(grep -Eo 'https://[a-z0-9.-]+\.workers\.dev' /tmp/iama-deploy.log | head -n1 || true)
+  [[ -n "$API_URL" ]] && break
+  if grep -q "register a workers.dev subdomain" /tmp/iama-deploy.log; then
+    onboarding=$(grep -Eo 'https://dash\.cloudflare\.com/[^ ]*/workers/onboarding' /tmp/iama-deploy.log | head -n1 || true)
+    printf '\n'
+    warn "Your account needs a workers.dev subdomain first (one-time)."
+    open_url "${onboarding:-https://dash.cloudflare.com/?to=/:account/workers/onboarding}"
+    step "Choose a subdomain (e.g. 'ritwik'); the API will live at iama-api.<it>.workers.dev."
+    step "Confirm it on that page. It can take a minute to become active."
+    pause "Press Enter once it's registered, and the wizard will retry the deploy"
+  else
+    warn "Deploy didn't finish (see the output above)."
+    confirm "Retry the deploy?" || break
+  fi
+done
 rm -f /tmp/iama-deploy.log
 if [[ -z "$API_URL" ]]; then
   warn "Couldn't spot the workers.dev URL in the output above."
