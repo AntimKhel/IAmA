@@ -4,7 +4,7 @@
   "description": "Visitor counter + guestbook API for the IAmA portfolio (Cloudflare Worker + D1)",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --port 8787",
+    "dev": "wrangler d1 migrations apply iama --local && wrangler dev --port 8787",
     "db:local": "wrangler d1 migrations apply iama --local",
     "db:remote": "wrangler d1 migrations apply iama --remote",
     "deploy": "wrangler deploy",

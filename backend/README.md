@@ -16,7 +16,7 @@ static Kobweb export on GitHub Pages and calls this API (CORS-limited to the por
 
 ## Day to day
 ```bash
-npm run dev        # local API on :8787 (uses .dev.vars; copy .dev.vars.example), the site uses it on localhost
+npm run dev        # local API on :8787: applies the local schema, then starts (uses .dev.vars; copy .dev.vars.example)
 npm run db:local   # apply migrations to the local D1
 npm test           # Vitest inside the Workers runtime
 npm run deploy     # publish changes to the Worker
