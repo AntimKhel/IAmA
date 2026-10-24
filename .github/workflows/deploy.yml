@@ -44,6 +44,14 @@ jobs:
           cd site
           kobweb export --notty --layout static
 
+      # Kobweb always emits /IAmA/iama.js. GitHub Pages caches files for 10 minutes, so a browser could
+      # pair a freshly deployed page with a stale cached bundle; a per-commit query string prevents that.
+      - name: Version the app bundle URL
+        run: |
+          version="${GITHUB_SHA::8}"
+          find site/.kobweb/site -name '*.html' -exec sed -i "s#/IAmA/iama.js\"#/IAmA/iama.js?v=${version}\"#g" {} +
+          echo "Versioned bundle references: $(grep -rl "iama.js?v=${version}" site/.kobweb/site --include='*.html' | wc -l) pages"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

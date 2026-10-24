@@ -14,6 +14,10 @@ plugins {
     alias(libs.plugins.kobwebx.markdown)
 }
 
+// Cache-busting tag for the assets we link from <head>: the commit SHA on CI, "dev" locally.
+// GitHub Pages caches files for 10 minutes, so a per-deploy URL keeps page and assets in sync.
+val assetVersion: String = providers.environmentVariable("GITHUB_SHA").map { it.take(8) }.getOrElse("dev")
+
 group = "dev.ritwik.iama"
 version = "1.0-SNAPSHOT"
 
@@ -70,12 +74,12 @@ kobweb {
                     rel = "stylesheet",
                     href = "https://fonts.googleapis.com/css2?family=Outfit:wght@200..900&family=Inter:wght@300..800&family=JetBrains+Mono:wght@400;500;700&display=swap"
                 )
-                link(rel = "stylesheet", href = "$base/css/rr.css")
-                link(rel = "stylesheet", href = "$base/css/sections.css")
-                link(rel = "stylesheet", href = "$base/css/blog.css")
+                link(rel = "stylesheet", href = "$base/css/rr.css?v=$assetVersion")
+                link(rel = "stylesheet", href = "$base/css/sections.css?v=$assetVersion")
+                link(rel = "stylesheet", href = "$base/css/blog.css?v=$assetVersion")
                 // Syntax highlighting for blog code blocks (themed in blog.css); hl.js adds a ProGuard/R8 grammar.
                 script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js") { attributes["defer"] = "" }
-                script(src = "$base/js/hl.js") { attributes["defer"] = "" }
+                script(src = "$base/js/hl.js?v=$assetVersion") { attributes["defer"] = "" }
 
                 meta(name = "theme-color", content = "#07090d")
                 meta(name = "author", content = "Ritwik Raj Srivastava")
