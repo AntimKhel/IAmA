@@ -1,7 +1,7 @@
 package dev.ritwik.iama.components.sections
 
 import androidx.compose.runtime.Composable
-import dev.ritwik.iama.components.lab.Variant
+import dev.ritwik.iama.components.devmode.Variant
 import dev.ritwik.iama.data.Experience
 import dev.ritwik.iama.data.experiences
 import org.jetbrains.compose.web.dom.*
@@ -56,27 +56,6 @@ fun ImpactSection() {
                             }
                         }
                         Div({ classes("tl", "gold") }) { Text("★ AWARD  Skoch 2026 · Gold · JioAirSync") }
-                    }
-                }
-                Variant.EDITORIAL -> {
-                    SectionHead(v, 2, "By the numbers", "Numbers that", "matter")
-                    Div({ classes("ic-list") }) {
-                        metrics.forEachIndexed { i, m ->
-                            Div({ classes("ic-row"); reveal("up", i * 80) }) {
-                                Div({ classes("ic-num") }) { Counter(m) }
-                                Div {
-                                    Div({ classes("ic-lbl") }) { Text(m.label) }
-                                    Div({ classes("ic-note") }) { Text(m.note) }
-                                }
-                            }
-                        }
-                        Div({ classes("ic-row", "award"); reveal("up", 400) }) {
-                            Div({ classes("ic-num") }) { Text("Gold") }
-                            Div {
-                                Div({ classes("ic-lbl") }) { Text("Skoch Award 2026") }
-                                Div({ classes("ic-note") }) { Text("for JioAirSync, a custom React Native OTA platform") }
-                            }
-                        }
                     }
                 }
             }
@@ -145,21 +124,6 @@ fun ExperienceSection() {
                                 Div({ classes("tl", "dim") }) { Text("|/  stack: ${e.techStack.joinToString(", ")}") }
                             }
                         }
-                    }
-                }
-                Variant.EDITORIAL -> {
-                    SectionHead(v, 3, "Career", "Where I've", "built")
-                    experiences.forEachIndexed { i, e ->
-                        Div({ classes("ec-row"); reveal("up") }) {
-                            Div({ classes("ec-years") }) { Text(e.period.replace(" — ", "\n")) }
-                            Div({ classes("ec-body") }) {
-                                H3({ classes("ec-company") }) { Text(e.company) }
-                                Div({ classes("ec-role") }) { Text("${e.role}, ${e.location}") }
-                                Ol({ classes("ec-list") }) { e.highlights.forEach { Li { Text(it) } } }
-                                Div({ classes("ec-stack") }) { Text(e.techStack.joinToString(" · ")) }
-                            }
-                        }
-                        if (i < experiences.lastIndex) Hr({ classes("ec-hr") })
                     }
                 }
             }

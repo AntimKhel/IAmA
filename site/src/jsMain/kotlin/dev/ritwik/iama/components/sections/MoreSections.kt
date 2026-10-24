@@ -5,7 +5,7 @@ import com.varabyte.kobweb.core.rememberPageContext
 import com.varabyte.kobweb.navigation.BasePath
 import dev.ritwik.iama.blog.BlogEntry
 import dev.ritwik.iama.blog.blogEntries
-import dev.ritwik.iama.components.lab.Variant
+import dev.ritwik.iama.components.devmode.Variant
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.data.agenticRoadmap
 import dev.ritwik.iama.data.roadmapIntro
@@ -76,19 +76,6 @@ fun RoadmapSection() {
                         }
                     }
                 }
-                Variant.EDITORIAL -> {
-                    SectionHead(v, 4, "What's next", "Agentic MyJio,", "the road ahead", roadmapIntro)
-                    Div({ classes("rc-grid") }) {
-                        agenticRoadmap.forEachIndexed { i, ph ->
-                            Div({ classes("rc-col"); reveal("up", i * 90) }) {
-                                Div({ classes("rc-roman") }) { Text(listOf("I", "II", "III", "IV")[i]) }
-                                Div({ classes("rc-horizon") }) { Text(ph.horizon) }
-                                H3({ classes("rc-name") }) { Text(ph.name) }
-                                P({ classes("rc-sum") }) { Text(ph.summary) }
-                            }
-                        }
-                    }
-                }
             }
         }
     }
@@ -127,33 +114,22 @@ fun SkillsSection() {
             }
             Variant.TERMINAL -> Div({ classes("wrap") }) {
                 SectionHead(v, 5, "Skills", "The", "toolkit", command = "skills")
-                TermWindow("build.gradle.kts — ritwik") {
-                    Div({ classes("tl") }) { Span({ classes("kw") }) { Text("dependencies") }; Text(" {") }
-                    skillCategories.forEach { cat ->
-                        Div({ classes("tl", "cm") }) { Text("    // ${cat.name}") }
-                        cat.skills.forEach { s ->
-                            Div({ classes("tl") }) {
-                                Text("    ")
-                                Span({ classes("fn") }) { Text("implementation") }
-                                Text("(")
-                                Span({ classes("str") }) { Text("\"ritwik:${s.lowercase().replace(" ", "-").replace("/", "")}:latest\"") }
-                                Text(")")
+                TermWindow("neofetch — ritwik@jio", "nf") {
+                    Div({ classes("tl") }) { Span({ classes("pr") }) { Text("$ ") }; Text("neofetch") }
+                    Div({ classes("nf-grid") }) {
+                        Pre({ classes("nf-logo") }) { Text(NEOFETCH_LOGO) }
+                        Div({ classes("nf-info") }) {
+                            Div({ classes("nf-title") }) {
+                                Span({ classes("g") }) { Text("ritwik") }; Text("@"); Span({ classes("g") }) { Text("jio") }
                             }
-                        }
-                    }
-                    Div({ classes("tl") }) { Text("}") }
-                }
-            }
-            Variant.EDITORIAL -> {
-                Div({ classes("wrap") }) { SectionHead(v, 5, "Craft", "The", "toolkit") }
-                Div({ classes("sc-belts") }) {
-                    val all = skillCategories.flatMap { it.skills }
-                    listOf(all, all.reversed(), all.shuffledStable()).forEachIndexed { row, items ->
-                        Div({ classes("sc-belt", "b$row") }) {
-                            Div({ classes("sc-track") }) {
-                                (items + items).forEachIndexed { k, s ->
-                                    Span({ classes("sc-word"); if (k % 3 == 1) classes("it") }) { Text(s) }
-                                    Span({ classes("sc-star") }) { Text("✦") }
+                            Div({ classes("nf-rule") }) { Text("-".repeat(22)) }
+                            NfRow("Role", Profile.headline)
+                            NfRow("Uptime", "${Profile.yearsOfExperience} years shipping Android")
+                            NfRow("Host", "MyJio · 500M+ installs")
+                            skillCategories.forEach { NfRow(it.name, it.skills.joinToString(", ")) }
+                            Div({ classes("nf-colors") }) {
+                                listOf("#ff5f57", "#febc2e", "#4dffa0", "#58d6ff", "#82aaff", "#c792ea", "#e8fff1").forEach { c ->
+                                    Span({ style { property("background", c) } })
                                 }
                             }
                         }
@@ -163,8 +139,6 @@ fun SkillsSection() {
         }
     }
 }
-
-private fun List<String>.shuffledStable() = withIndex().sortedBy { (i, s) -> (s.hashCode() * 31 + i) % 97 }.map { it.value }
 
 // ---------------------------------------------------------------------------
 // Blog teaser
@@ -210,25 +184,6 @@ fun BlogTeaserSection() {
                             }) {
                                 Span({ classes("dim") }) { Text("-rw-r--r--  ritwik  ${p.readingMinutes.toString().padStart(2)}min  ${p.date.padEnd(16)} ") }
                                 Span({ classes("v") }) { Text(p.route.substringAfterLast("/") + ".md") }
-                            }
-                        }
-                    }
-                    AllPosts(router)
-                }
-                Variant.EDITORIAL -> {
-                    SectionHead(v, 6, "Journal", "Notes from", "the field")
-                    Div({ classes("bc-grid") }) {
-                        posts.forEachIndexed { i, p ->
-                            A(BasePath.prependTo(p.route), {
-                                classes("bc-item")
-                                if (i == 0) classes("lead")
-                                reveal("up", i * 90)
-                                onClick { it.preventDefault(); router.tryRoutingTo(p.route) }
-                            }) {
-                                Div({ classes("bc-meta") }) { Text("${p.date} — ${p.readingMinutes} min read") }
-                                H3({ classes("bc-title") }) { Text(p.title) }
-                                P({ classes("bc-desc") }) { Text(p.description) }
-                                Span({ classes("bc-more") }) { Text("Read →") }
                             }
                         }
                     }
@@ -283,18 +238,6 @@ fun ContactSection() {
                         Div({ classes("tl") }) { Span({ classes("pr") }) { Text("$ ") }; Span({ classes("cursor") }) }
                     }
                 }
-                Variant.EDITORIAL -> {
-                    Div({ classes("cc-wrap"); reveal("up") }) {
-                        Div({ classes("sh-num") }) { Text("07"); Span({ classes("rule") }); Text("Contact") }
-                        H2({ classes("cc-title") }) { Text("Say "); Em { Text("hello.") } }
-                        Div({ classes("cc-links") }) {
-                            A("mailto:${Profile.email}") { Text(Profile.email) }
-                            A(Profile.linkedIn, { target(ATarget.Blank); attr("rel", "noopener") }) { Text("LinkedIn") }
-                            A(resumeHref, { attr("download", Profile.resumeFileName) }) { Text("Résumé (PDF)") }
-                            Button({ onClick { UiState.contactOpen = true } }) { Text("Phone") }
-                        }
-                    }
-                }
             }
         }
     }
@@ -311,3 +254,21 @@ private fun ContactButtons() {
         A(Profile.linkedIn, { classes("rr-btn"); target(ATarget.Blank); attr("rel", "noopener") }) { I({ classes("fa-brands", "fa-linkedin-in") }); Text("LinkedIn") }
     }
 }
+
+@Composable
+private fun NfRow(key: String, value: String) {
+    Div({ classes("nf-row") }) {
+        Span({ classes("nf-k") }) { Text(key) }
+        Span({ classes("nf-v") }) { Text(value) }
+    }
+}
+
+private const val NEOFETCH_LOGO = """
+  ██████████▄
+  ███      ███
+  ███      ███
+  ██████████▀
+  ███   ▀███
+  ███     ▀███
+  ███       ▀███
+"""

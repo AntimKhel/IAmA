@@ -2,14 +2,12 @@ package dev.ritwik.iama.components.sections
 
 import androidx.compose.runtime.Composable
 import com.varabyte.kobweb.navigation.BasePath
-import dev.ritwik.iama.components.lab.Variant
+import dev.ritwik.iama.components.devmode.Variant
 import dev.ritwik.iama.components.phone.AppHost
 import dev.ritwik.iama.components.phone.Apps
 import dev.ritwik.iama.components.phone.PhoneState
 import dev.ritwik.iama.data.Product
 import dev.ritwik.iama.data.products
-import org.jetbrains.compose.web.attributes.ATarget
-import org.jetbrains.compose.web.attributes.target
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
@@ -21,7 +19,6 @@ fun ProductsSection() {
         when (v) {
             Variant.MATERIAL -> ProductsMaterial()
             Variant.TERMINAL -> ProductsTerminal()
-            Variant.EDITORIAL -> ProductsEditorial()
         }
     }
 }
@@ -149,50 +146,5 @@ private fun ProductsTerminal() {
             }
         }
         P({ classes("tb-hint") }) { Text("› click a package to open it") }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// C — Editorial: pinned horizontal gallery
-// ---------------------------------------------------------------------------
-
-@Composable
-private fun ProductsEditorial() {
-    Div({ classes("pc-pin"); style { property("--n", products.size) } }) {
-        Div({ classes("pc-sticky") }) {
-            Div({ classes("wrap", "pc-head") }) {
-                SectionHead(Variant.EDITORIAL, 1, "Selected work", "Things I've", "shipped")
-            }
-            Div({ classes("pc-track") }) {
-                products.forEachIndexed { i, p ->
-                    Article({ classes("pc-panel"); style { property("--a", p.accent); property("--b", p.accent2) } }) {
-                        Div({ classes("pc-text") }) {
-                            Div({ classes("pc-idx") }) { Text("No. ${(i + 1).toString().padStart(2, '0')}") }
-                            H3({ classes("pc-name") }) { Text(p.name) }
-                            Div({ classes("pc-tag") }) { Text(p.tagline) }
-                            P({ classes("pc-work") }) { Text(p.myWork) }
-                            Div({ classes("pc-meta") }) {
-                                Span { Text(p.role) }
-                                Span { Text(p.stat()) }
-                            }
-                            Div({ classes("pc-links") }) {
-                                Button({ attr("data-origin", ""); onClick { openProduct(p, it.target as? Element) } }) { Text("Read the case →") }
-                                if (p.url != null) A(p.url, { target(ATarget.Blank); attr("rel", "noopener") }) { Text("Google Play ↗") }
-                            }
-                        }
-                        Div({ classes("pc-art") }) {
-                            if (p.screenshots.size >= 3) {
-                                p.screenshots.take(3).forEachIndexed { k, src ->
-                                    Img(BasePath.prependTo(src), "") { classes("pc-shot", "s$k"); attr("loading", "lazy") }
-                                }
-                            } else {
-                                Div({ classes("pc-mono") }) { Icon(p, "pc-icon") }
-                            }
-                        }
-                    }
-                }
-            }
-            Div({ classes("pc-progress") }) { Div({ classes("bar") }) }
-        }
     }
 }

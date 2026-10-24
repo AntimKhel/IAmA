@@ -7,7 +7,7 @@ import com.varabyte.kobweb.core.init.InitRoute
 import com.varabyte.kobweb.core.init.InitRouteContext
 import com.varabyte.kobweb.core.layout.Layout
 import dev.ritwik.iama.components.hero.HeroScene
-import dev.ritwik.iama.components.lab.StyleLabPanel
+import dev.ritwik.iama.components.devmode.DevModeSwitch
 import dev.ritwik.iama.components.layouts.PageLayoutData
 import dev.ritwik.iama.components.sections.*
 
@@ -28,5 +28,5 @@ fun HomePage() {
     SkillsSection()
     BlogTeaserSection()
     ContactSection()
-    StyleLabPanel()
+    DevModeSwitch()
 }
