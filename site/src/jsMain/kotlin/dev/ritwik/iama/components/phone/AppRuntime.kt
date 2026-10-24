@@ -5,6 +5,7 @@ import dev.ritwik.iama.components.phone.apps.AboutApp
 import dev.ritwik.iama.components.phone.apps.AwardsApp
 import dev.ritwik.iama.components.phone.apps.BlogApp
 import dev.ritwik.iama.components.phone.apps.ContactApp
+import dev.ritwik.iama.components.phone.apps.GuestbookApp
 import dev.ritwik.iama.components.phone.apps.SkillsApp
 import dev.ritwik.iama.components.phone.apps.StoreApp
 import dev.ritwik.iama.components.phone.apps.WorkApp
@@ -18,7 +19,7 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 
 /** Screens that open as in-phone apps. */
-enum class AppScreen { WORK, STORE, BLOG, ABOUT, SKILLS, AWARDS, CONTACT }
+enum class AppScreen { WORK, STORE, BLOG, ABOUT, SKILLS, AWARDS, CONTACT, GUESTBOOK }
 
 /** Where an app window is drawn: inside the hero's phone mockup, or over the whole viewport. */
 enum class AppHost { PHONE, FULL }
@@ -130,6 +131,7 @@ fun AppWindowHost(host: AppHost) {
                     AppScreen.SKILLS -> SkillsApp()
                     AppScreen.AWARDS -> AwardsApp()
                     AppScreen.CONTACT -> ContactApp()
+                    AppScreen.GUESTBOOK -> GuestbookApp()
                 }
             }
             // Splash: the icon's colour fills the window, then fades as content appears.

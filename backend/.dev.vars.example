@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local development with `npm run dev`.
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+ADMIN_TOKEN=local-dev-admin-token-123456
+HASH_SALT=local-dev-salt

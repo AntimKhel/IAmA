@@ -28,6 +28,9 @@ kobweb {
             faviconPath.set("/favicon.svg")
             description.set("Ritwik Raj Srivastava — Software Engineer & Tech Lead, Android & AI. 7+ years shipping MyJio, JioFinance and JioMart; agentic AI, AI-native SDLC, Compose and React Native.")
 
+            // Copy into a local so the head lambda captures a String, not the build script
+            // (script object references break Gradle's configuration cache).
+            val assetVersion = assetVersion
             head.add {
                 // Must match `site.basePath` in .kobweb/conf.yaml; head links are not auto-prefixed.
                 val base = "/IAmA"
@@ -77,6 +80,12 @@ kobweb {
                 link(rel = "stylesheet", href = "$base/css/rr.css?v=$assetVersion")
                 link(rel = "stylesheet", href = "$base/css/sections.css?v=$assetVersion")
                 link(rel = "stylesheet", href = "$base/css/blog.css?v=$assetVersion")
+                link(rel = "stylesheet", href = "$base/css/guestbook.css?v=$assetVersion")
+                // Cloudflare Turnstile (spam check for guestbook notes), rendered explicitly by the note form.
+                script(src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit") {
+                    attributes["async"] = ""
+                    attributes["defer"] = ""
+                }
                 // Syntax highlighting for blog code blocks (themed in blog.css); hl.js adds a ProGuard/R8 grammar.
                 script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js") { attributes["defer"] = "" }
                 script(src = "$base/js/hl.js?v=$assetVersion") { attributes["defer"] = "" }

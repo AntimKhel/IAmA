@@ -26,6 +26,7 @@ import dev.ritwik.iama.components.phone.AppHost
 import dev.ritwik.iama.components.phone.AppWindowHost
 import dev.ritwik.iama.components.recruiter.ContactSheet
 import dev.ritwik.iama.components.recruiter.Toast
+import dev.ritwik.iama.components.widgets.VisitorStats
 
 val PageContentStyle = CssStyle {
     base { Modifier.fillMaxSize().padding(leftRight = 0.cssRem, top = 0.cssRem) }
@@ -38,6 +39,9 @@ class PageLayoutData(val title: String)
 @Layout
 fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
     val data = ctx.data.getValue<PageLayoutData>()
+    // Visitor counter: registers this visit once per session, then reads the total (hidden if the API is down).
+    LaunchedEffect(Unit) { VisitorStats.load() }
+
     LaunchedEffect(data.title) {
         document.title = if (data.title == "Home") "Ritwik Raj Srivastava — Tech Lead · Android & AI"
         else "${data.title} — Ritwik Raj Srivastava"

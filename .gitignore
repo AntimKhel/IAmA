@@ -27,3 +27,8 @@ kotlin-js-store
 
 # Kotlin ignores
 .kotlin
+
+# Cloudflare Worker backend
+backend/node_modules/
+backend/.wrangler/
+backend/.dev.vars

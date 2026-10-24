@@ -1,5 +1,10 @@
 This is a [Kobweb](https://github.com/varabyte/kobweb) project bootstrapped with the `app` template.
 
+## Visitor counter & guestbook backend
+
+The live visitor count and the guestbook are served by a small Cloudflare Worker + D1 database in
+[`backend/`](backend/README.md). First-time setup is one guided script: `backend/setup.sh`.
+
 ## Getting Started
 
 First, run the development server by typing the following command in a terminal under the `site` folder:

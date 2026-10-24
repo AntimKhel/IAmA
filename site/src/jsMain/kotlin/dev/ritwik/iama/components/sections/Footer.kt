@@ -3,6 +3,7 @@ package dev.ritwik.iama.components.sections
 import androidx.compose.runtime.Composable
 import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.toAttrs
+import dev.ritwik.iama.components.widgets.VisitorBadge
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.util.resumeHref
 import org.jetbrains.compose.web.attributes.ATarget
@@ -30,6 +31,7 @@ fun Footer(modifier: Modifier = Modifier) {
         }
         Div({ classes("ft-base") }) {
             Span { Text("© ${Date().getFullYear()} ${Profile.name}") }
+            VisitorBadge()
             Span { Text("Built in Kotlin with Kobweb · no JavaScript frameworks were harmed") }
         }
     }

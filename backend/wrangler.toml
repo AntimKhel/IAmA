@@ -1,0 +1,23 @@
+# Cloudflare Worker backing the portfolio's visitor counter and guestbook.
+# Secrets are set with `npx wrangler secret put <NAME>` and never committed:
+#   TURNSTILE_SECRET  Cloudflare Turnstile secret key
+#   ADMIN_TOKEN       bearer token for the /admin endpoints
+#   HASH_SALT         salt for the anonymous daily visitor hash
+name = "iama-api"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGINS = "https://antimkhel.github.io,http://localhost:8080"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "iama"
+# Replaced with the real id by setup.sh (`wrangler d1 create iama`).
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+# Daily cleanup of visitor hashes (only today's and yesterday's are ever kept).
+[triggers]
+crons = ["17 3 * * *"]

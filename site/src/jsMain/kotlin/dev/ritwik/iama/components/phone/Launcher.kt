@@ -2,6 +2,7 @@ package dev.ritwik.iama.components.phone
 
 import androidx.compose.runtime.Composable
 import com.varabyte.kobweb.core.rememberPageContext
+import dev.ritwik.iama.data.Backend
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.util.HtmlState
 import dev.ritwik.iama.util.UiState
@@ -45,14 +46,18 @@ object Apps {
     val github = LauncherApp("GitHub", "fa-brands fa-github", "#3b434f", "#151a21", AppAction.External(Profile.github))
     val skills = LauncherApp("Skills", "fa-solid fa-code", "#7c4dff", "#b06bff", AppAction.Open(AppScreen.SKILLS))
     val awards = LauncherApp("Awards", "fa-solid fa-trophy", "#ffb13d", "#ff8a3d", AppAction.Open(AppScreen.AWARDS))
+    val guestbook = LauncherApp("Guestbook", "fa-solid fa-feather-pointed", "#ff6fae", "#ffb13d", AppAction.Open(AppScreen.GUESTBOOK))
 
     val phone = LauncherApp("Phone", "fa-solid fa-phone", "#3ddc84", "#00bfa5", AppAction.Open(AppScreen.CONTACT))
     val mail = LauncherApp("Mail", "fa-solid fa-envelope", "#2f6bff", "#00bfa5", AppAction.External("mailto:${Profile.email}"))
     val play = LauncherApp("Play", "fa-brands fa-google-play", "#00bfa5", "#7c4dff", AppAction.Open(AppScreen.STORE))
     val browser = LauncherApp("Browser", "fa-solid fa-compass", "#ff8a3d", "#2f6bff", AppAction.Open(AppScreen.BLOG))
 
-    val grid = listOf(work, products, blog, about, contact, resume, linkedIn, github)
-    val desk = listOf(work, products, blog, about, skills, awards, contact, resume, linkedIn, github)
+    /** The Guestbook takes GitHub's slot once the backend is configured (GitHub stays in footer + contact). */
+    private val lastSlot get() = if (Backend.enabled) guestbook else github
+
+    val grid get() = listOf(work, products, blog, about, contact, resume, linkedIn, lastSlot)
+    val desk get() = listOf(work, products, blog, about, skills, awards, contact, resume, linkedIn, lastSlot)
     val dock = listOf(phone, mail, play, browser)
 }
 

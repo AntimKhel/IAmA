@@ -10,6 +10,8 @@ import dev.ritwik.iama.components.phone.Dock
 import dev.ritwik.iama.components.phone.PhoneFrame
 import dev.ritwik.iama.components.phone.PhoneState
 import dev.ritwik.iama.components.phone.rememberClock
+import dev.ritwik.iama.components.widgets.CountUp
+import dev.ritwik.iama.components.widgets.VisitorStats
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.data.floaterStats
 import dev.ritwik.iama.data.heroStats
@@ -393,6 +395,14 @@ private fun Desk() {
                         Div {
                             Div({ classes("big") }) { Text(stat.value) }
                             Text(stat.label)
+                        }
+                    }
+                }
+                VisitorStats.visitors?.let { count ->
+                    Div({ classes("rr-widget-pill", "visitors") }) {
+                        Div {
+                            Div({ classes("big") }) { CountUp(count) }
+                            Text("visitors so far, you included")
                         }
                     }
                 }

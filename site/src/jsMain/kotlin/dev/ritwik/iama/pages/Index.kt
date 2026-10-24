@@ -27,6 +27,7 @@ fun HomePage() {
     RoadmapSection()
     SkillsSection()
     BlogTeaserSection()
+    GuestbookSection()
     ContactSection()
     DevModeSwitch()
 }
