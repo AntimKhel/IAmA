@@ -37,8 +37,12 @@ object PhoneState {
         private set
     var closing by mutableStateOf(false)
         private set
+    /** Optional deep link into the app, e.g. the product to show first in Products. */
+    var payload by mutableStateOf<Any?>(null)
+        private set
 
-    fun open(app: LauncherApp, host: AppHost, clicked: Element?) {
+    fun open(app: LauncherApp, host: AppHost, clicked: Element?, payload: Any? = null) {
+        this.payload = payload
         origin = clicked?.let { originOf(it, host) }
         this.host = host
         closing = false
@@ -55,7 +59,7 @@ object PhoneState {
     }
 
     private fun originOf(clicked: Element, host: AppHost): Origin? {
-        val icon = (clicked.closest(".rr-app")?.querySelector(".ico") ?: return null) as HTMLElement
+        val icon = (clicked.closest(".rr-app")?.querySelector(".ico") ?: clicked.closest("[data-origin]") ?: return null) as HTMLElement
         val r = icon.getBoundingClientRect()
         return when (host) {
             AppHost.FULL -> Origin(r.top, window.innerWidth - r.right, window.innerHeight - r.bottom, r.left)

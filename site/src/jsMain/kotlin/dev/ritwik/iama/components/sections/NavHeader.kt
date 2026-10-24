@@ -14,7 +14,7 @@ import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
-private val navSections = listOf("experience" to "Work", "showcase" to "Products", "skills" to "Skills")
+private val navSections = listOf("products" to "Products", "experience" to "Work", "roadmap" to "Upcoming")
 
 /** Floating glass pill: logo with a scroll-progress ring, section links, blog, résumé and the "Hire me" fast lane. */
 @Composable

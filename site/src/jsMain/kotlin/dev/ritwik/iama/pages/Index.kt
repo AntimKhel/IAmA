@@ -1,17 +1,13 @@
 package dev.ritwik.iama.pages
 
 import androidx.compose.runtime.Composable
-import com.varabyte.kobweb.compose.foundation.layout.Box
-import com.varabyte.kobweb.compose.ui.Modifier
-import com.varabyte.kobweb.compose.ui.modifiers.*
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.core.data.add
 import com.varabyte.kobweb.core.init.InitRoute
 import com.varabyte.kobweb.core.init.InitRouteContext
 import com.varabyte.kobweb.core.layout.Layout
-import com.varabyte.kobweb.silk.style.toModifier
-import dev.ritwik.iama.AltSectionWrapperStyle
 import dev.ritwik.iama.components.hero.HeroScene
+import dev.ritwik.iama.components.lab.StyleLabPanel
 import dev.ritwik.iama.components.layouts.PageLayoutData
 import dev.ritwik.iama.components.sections.*
 
@@ -25,13 +21,12 @@ fun initHomePage(ctx: InitRouteContext) {
 @Composable
 fun HomePage() {
     HeroScene()
-    // Sections below are redesigned (with Style Lab variants) in phase 3.
-    Box(AltSectionWrapperStyle.toModifier().fillMaxWidth()) {
-        ShowcaseSection()
-    }
+    ProductsSection()
+    ImpactSection()
     ExperienceSection()
-    Box(AltSectionWrapperStyle.toModifier().fillMaxWidth()) {
-        SkillsSection()
-    }
-    CertSection()
+    RoadmapSection()
+    SkillsSection()
+    BlogTeaserSection()
+    ContactSection()
+    StyleLabPanel()
 }

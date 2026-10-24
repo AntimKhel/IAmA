@@ -36,15 +36,19 @@ object HtmlState {
 
     private const val TAPPED_KEY = "rr-tapped"
 
-    /** Restores the "visitor already knows the apps are tappable" flag. */
+    /**
+     * Restores "the visitor already tapped an app" for this session only, so every new visit
+     * gets the tap hints again. (An earlier build stored it forever in localStorage; clear that.)
+     */
     fun restoreTapped() {
-        if (runCatching { window.localStorage.getItem(TAPPED_KEY) }.getOrNull() != null) root?.classList?.add(TAPPED_KEY)
+        runCatching { window.localStorage.removeItem(TAPPED_KEY) }
+        if (runCatching { window.sessionStorage.getItem(TAPPED_KEY) }.getOrNull() != null) root?.classList?.add(TAPPED_KEY)
     }
 
-    /** First tap on any app retires the tap hints (finger, halos, callout) for good. */
+    /** First tap on an app quiets the hints (finger and callout go, halos slow down) for this session. */
     fun markTapped() {
         root?.classList?.add(TAPPED_KEY)
-        runCatching { window.localStorage.setItem(TAPPED_KEY, "1") }
+        runCatching { window.sessionStorage.setItem(TAPPED_KEY, "1") }
     }
 }
 

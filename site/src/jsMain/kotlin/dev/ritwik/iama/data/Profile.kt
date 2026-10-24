@@ -248,3 +248,48 @@ val products = listOf(
         icon = "fa-solid fa-cubes",
     ),
 )
+
+// ---------------------------------------------------------------------------
+// Upcoming work — Agentic MyJio. DRAFT phases, to be confirmed by Ritwik; generic on purpose.
+// ---------------------------------------------------------------------------
+
+data class RoadmapPhase(
+    val number: Int,
+    val name: String,
+    val horizon: String,
+    val summary: String,
+    val items: List<String>,
+    val icon: String,
+    val accent: String,
+)
+
+const val roadmapIntro =
+    "MyJio Agentic is the start of an assistant that doesn't just answer — it gets things done. " +
+        "Here's where it's heading."
+
+val agenticRoadmap = listOf(
+    RoadmapPhase(
+        1, "Assist", "Now",
+        "A conversational layer inside MyJio that understands plans, usage and bills, and routes you to the right journey.",
+        listOf("Natural-language help", "Deep links into native & RN journeys", "Grounded answers on account data"),
+        "fa-solid fa-comments", "#3ddc84",
+    ),
+    RoadmapPhase(
+        2, "Act", "Next",
+        "Agents that complete tasks end to end — recharge, pay a bill, change a plan, raise a request — with confirmations and guardrails.",
+        listOf("Tool-calling over app capabilities", "Human-in-the-loop confirmations", "Safe, auditable actions"),
+        "fa-solid fa-bolt", "#00bfa5",
+    ),
+    RoadmapPhase(
+        3, "Anticipate", "Later",
+        "Proactive, personalised help: spotting a plan that fits better, warning before data runs out, planning multi-step tasks.",
+        listOf("Proactive nudges", "Multi-step planning", "Personal context & memory"),
+        "fa-solid fa-brain", "#2f6bff",
+    ),
+    RoadmapPhase(
+        4, "Everywhere", "Exploring",
+        "Voice-first and multilingual, working across the Jio ecosystem, with on-device models where privacy and speed matter.",
+        listOf("Voice & Indian languages", "Cross-app agents", "On-device inference"),
+        "fa-solid fa-globe", "#7c4dff",
+    ),
+)

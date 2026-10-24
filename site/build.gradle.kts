@@ -56,9 +56,10 @@ kobweb {
                 link(rel = "preconnect", href = "https://fonts.gstatic.com") { attributes["crossorigin"] = "" }
                 link(
                     rel = "stylesheet",
-                    href = "https://fonts.googleapis.com/css2?family=Outfit:wght@200..900&family=Inter:wght@300..800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+                    href = "https://fonts.googleapis.com/css2?family=Outfit:wght@200..900&family=Inter:wght@300..800&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&display=swap"
                 )
                 link(rel = "stylesheet", href = "$base/css/rr.css")
+                link(rel = "stylesheet", href = "$base/css/sections.css")
 
                 meta(name = "theme-color", content = "#07090d")
                 meta(name = "author", content = "Ritwik Raj Srivastava")

@@ -3,6 +3,7 @@ package dev.ritwik.iama.components.phone.apps
 import androidx.compose.runtime.*
 import com.varabyte.kobweb.navigation.BasePath
 import dev.ritwik.iama.components.phone.AppBar
+import dev.ritwik.iama.components.phone.PhoneState
 import dev.ritwik.iama.data.Product
 import dev.ritwik.iama.data.products
 import org.jetbrains.compose.web.attributes.ATarget
@@ -12,7 +13,7 @@ import org.jetbrains.compose.web.dom.*
 /** A Play-Store-style shelf of the products Ritwik has shipped. */
 @Composable
 fun StoreApp() {
-    var selected by remember { mutableStateOf<Product?>(null) }
+    var selected by remember { mutableStateOf(PhoneState.payload as? Product) }
     val product = selected
     if (product == null) {
         AppBar("Products", "Things I've shipped")

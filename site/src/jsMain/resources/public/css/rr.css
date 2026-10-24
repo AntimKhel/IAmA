@@ -2081,10 +2081,16 @@ html.rr-booting body::before {
   color: #5b6472;
 }
 
+/* After the first tap: the finger and callout bow out, but the halo keeps a slow, subtle
+   pulse so the icons still read as tappable. */
 html.rr-tapped .rr-finger,
-html.rr-tapped .rr-callout,
-html.rr-tapped .rr-app .ico::before {
+html.rr-tapped .rr-callout {
   display: none;
+}
+
+html.rr-tapped .rr-app .ico::before {
+  animation-duration: 9s !important;
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 @media (max-width: 899px) {
