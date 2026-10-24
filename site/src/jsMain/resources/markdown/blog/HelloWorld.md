@@ -1,52 +1,67 @@
 ---
-title: "Hello World - Why I Built This Site with Kotlin"
+title: "Hello World — Why I Built This Site in Kotlin"
 date: "March 29, 2026"
-description: "An Android developer's journey into web development using Compose for Web and Kobweb."
+description: "An Android developer's notes on building a portfolio with Compose for Web and Kobweb: what maps cleanly from Android, what doesn't, and the gotchas that cost me an evening each."
 tags: Kotlin, Kobweb, Web
 ---
 
-# Hello World - Why I Built This Site with Kotlin
+> I build Android apps for a living, so I built this site the way I'd build an app: **Kotlin, composable functions and state** — via Compose HTML and the Kobweb framework. Most of what I know from Jetpack Compose carried over. The rest is below, gotchas included.
 
-As an Android developer who's been writing Kotlin for 6+ years, the idea of building a website always felt like
-stepping into foreign territory. HTML, CSS, JavaScript -- a whole different ecosystem to learn. But then I discovered
-**Kobweb**, a framework that lets you build websites using **Compose for Web**, and everything clicked.
+## Why not React or Next.js?
 
-## Why Not Just Use React or Next.js?
+They're great, and they power most of the web. But I already think in composables, modifiers and state, Kotlin is the language I'm fastest in, and I wanted a side project that sharpened skills I use every day rather than a new stack to maintain.
 
-Great question. React and Next.js are fantastic, and they power most of the modern web. But here's the thing:
+[Kobweb](https://kobweb.varabyte.com) sits on top of Compose HTML and adds the things a real site needs: file-based routing, a component and theming layer called Silk, markdown pages, and static export.
 
-- I already think in **Composables**, **Modifiers**, and **state management**
-- Kotlin is my primary language, and I love its type safety
-- I wanted to build something without learning an entirely new paradigm
+## What maps from Android — and what doesn't
 
-## What is Kobweb?
-
-Kobweb is like **Next.js for Kotlin**. It gives you:
-
-- **File-based routing** -- just like Next.js, your file structure defines your URLs
-- **Silk UI** -- a component library with `Row`, `Column`, `Box`, and `Modifier` (sound familiar?)
-- **Markdown support** -- this very blog post is written in Markdown and auto-converted to a page
-- **Static export** -- deploy to GitHub Pages, Netlify, or any static host
-
-## The Android Developer Advantage
-
-If you know Jetpack Compose, you already know 80% of what you need:
-
-| Android Compose | Kobweb (Web) |
+| Jetpack Compose (Android) | Kobweb (web) |
 |---|---|
-| `dp` | `cssRem` |
-| `LazyColumn` | Regular `Column` |
-| `MaterialTheme` | `SilkTheme` + `ColorMode` |
-| `NavController` | File-based routing |
-| `remember { mutableStateOf() }` | Same! |
+| `@Composable` functions | The same — Compose HTML renders to the DOM |
+| `remember`, `mutableStateOf` | Identical |
+| `Modifier` chains | Kobweb `Modifier` chains, compiled to CSS |
+| `dp` | roughly CSS `px` (and `sp` ≈ `rem`) |
+| `LazyColumn` | A regular column — **no virtualisation** unless you build it |
+| `NavHost` and routes | File-based routing with `@Page` |
+| `MaterialTheme` | Silk theme, color modes and `CssStyle` |
 
-## What's Next?
+The surprise wasn't how much carried over; it was how quickly I wanted to drop down to plain CSS for anything animated. Modifiers are perfect for layout. For choreography, a stylesheet driven by CSS variables is clearer.
 
-I'll be writing more about:
+## Gotchas that cost me an evening each
 
-- Building design systems in Jetpack Compose
-- My experience leading the MyJio app development
-- Tips for Android developers exploring web technologies
-- OTA updates for React Native apps
+**GitHub Pages lives under a sub-path.** This site is served from `/IAmA/`, not `/`. Kobweb handles that with a `basePath` in `.kobweb/conf.yaml`, and most helpers (`Image`, Silk `Link`) prefix it for you. The exception: links to *files*. A `Link` to `/resume.pdf` is treated as a route, so I use a plain anchor with `BasePath.prependTo(...)` and a `download` attribute instead.
 
-Stay tuned, and feel free to reach out on [LinkedIn](https://linkedin.com/in/ritwik-srivastava)!
+**Posts should index themselves.** I didn't want to edit a Kotlin list every time I wrote a post, so the build script reads each markdown file's front matter and generates the blog index — title, date, tags, reading time, and even a reference to the post's composable so it can render inside other components:
+
+```kotlin
+// site/build.gradle.kts (simplified excerpt)
+kobweb {
+    markdown {
+        process.set { entries ->
+            val posts = entries.filter { it.filePath.startsWith("blog/") }
+            generateKotlin("dev/ritwik/iama/blog/BlogEntries.kt", buildBlogIndex(posts))
+        }
+    }
+}
+```
+
+**The head is static.** Fonts, meta tags and stylesheets added at runtime end up duplicated in a static export. Anything that belongs in `<head>` goes in `kobweb { app { index { head.add { … } } } }` at build time.
+
+## Shipping it
+
+`kobweb export --layout static` produces plain HTML, CSS and JS; a GitHub Actions workflow builds and deploys it to GitHub Pages on every push to `main`. No server, no bill.
+
+## Update — October 2026: the redesign
+
+The site you're reading is version two. It boots like a phone, the phone dives into its own screen as you scroll, and the icons open real apps — including this blog. A few notes from building it:
+
+- **Animation without recomposition.** A single `requestAnimationFrame` loop in Kotlin writes scroll and pointer progress into CSS custom properties; the stylesheet does the rest. Compose only re-renders when real state changes.
+- **Markdown anywhere.** Because the generated blog index holds each post's composable, the Blog app inside the phone renders the actual post, not a summary.
+- **Light and dark mode** follow the OS until you toggle them.
+- There's a dev mode. Press the backtick key on the home page.
+
+## More from the blog
+
+- [From 24% to 82%: Untangling R8 Keep Rules in a 500M-Install App](/blog/r8-story)
+- [Rolling Your Own React Native OTA](/blog/ota-updates-react-native)
+- [One Theme Token, Two Runtimes](/blog/compose-design-system)

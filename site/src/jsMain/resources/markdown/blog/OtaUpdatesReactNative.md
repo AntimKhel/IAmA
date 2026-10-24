@@ -1,113 +1,101 @@
 ---
-title: "OTA Updates for React Native Without CodePush"
+title: "Rolling Your Own React Native OTA: Delta Patches, Warm-Start Apply and Rollback"
 date: "March 20, 2026"
-description: "We built our own over-the-air update system for React Native at Jio. Here's the architecture and why we chose this over CodePush."
+description: "The design behind JioAirSync, the over-the-air update system I built for React Native at MyJio scale: own the bundle path, patch deltas, apply on the next warm start, and roll back automatically."
 tags: React Native, OTA, Architecture
 ---
 
-# OTA Updates for React Native Without CodePush
+> Over-the-air updates for React Native come down to one hook — **owning where the JS bundle is loaded from** — plus a lot of discipline around it: download deltas with a full-bundle fallback, verify before you trust, **apply only on the next warm start**, and **roll back automatically** when a new bundle fails to come up. This is the design behind JioAirSync, which won a Skoch Gold award in 2026.
 
-At Jio, we needed a way to push JavaScript bundle updates to our React Native modules without going through
-the full Play Store review cycle. Microsoft's CodePush was the obvious choice -- but we decided to build our own.
-Here's why and how.
+## Why not just use a hosted service?
 
-## Why Not CodePush?
+Hosted OTA services are the right answer for most teams. We built our own because, at our scale, we needed things a hosted service couldn't give us:
 
-CodePush is great for small teams, but at our scale:
+- **Control over rollout:** targeting, staged percentages and instant pauses decided by *our* backend.
+- **Our own delivery and data path:** bundles served from infrastructure we already ran and audited.
+- **Release UX we could template:** silent updates for fixes, prompts for features, a hard stop for critical issues.
+- **Many teams, many cadences:** journeys owned by different teams needed to ship independently.
 
-- **Control**: We needed full control over rollout percentages, targeting, and rollback
-- **Infrastructure**: We already had CDN and analytics infrastructure
-- **Compliance**: Storing bundles on Microsoft's servers raised compliance concerns
-- **Customization**: We needed features CodePush didn't support (A/B testing bundles, device-specific targeting)
+If you're starting today, look at the current landscape first. Microsoft retired Visual Studio App Center in March 2025, and the ecosystem has moved — self-hostable CodePush-compatible servers and Expo Updates are both worth evaluating before you write a line of code.
 
-## The Architecture
+## The one hook you need: own the bundle path
 
-Our OTA system has four components:
-
-### 1. Bundle Server
-A simple API that serves bundle metadata:
-
-```
-GET /api/bundles/latest?app=myjio&platform=android&version=5.2.0
-
-Response:
-{
-  "bundleId": "b-2026-03-15-001",
-  "url": "https://cdn.jio.com/bundles/myjio/b-2026-03-15-001.zip",
-  "hash": "sha256:abc123...",
-  "minAppVersion": "5.0.0",
-  "rolloutPercentage": 25,
-  "mandatory": false
-}
-```
-
-### 2. Android Native Bridge
-A Kotlin module that handles downloading, verifying, and installing bundles:
+React Native lets the host app decide where the JavaScript bundle comes from. Everything else in an OTA system hangs off that decision. In the host, delegate it to an updater that falls back to the bundle shipped inside the APK:
 
 ```kotlin
-class OtaBundleManager(
-    private val context: Context,
-    private val api: OtaApi,
-) {
-    suspend fun checkForUpdate(): OtaUpdate? {
-        val current = getCurrentBundleVersion()
-        val latest = api.getLatestBundle(
-            app = BuildConfig.APP_ID,
-            platform = "android",
-            version = BuildConfig.VERSION_NAME,
-        )
-        return if (latest.bundleId != current && isInRollout(latest)) {
-            latest
-        } else null
-    }
+// Simplified. The updater returns null when there is no verified, active OTA bundle.
+override fun getJSBundleFile(): String? =
+    bundleUpdater.activeBundlePath() // null → React Native loads the bundle embedded in the APK
+```
 
-    suspend fun downloadAndApply(update: OtaUpdate) {
-        val file = downloadBundle(update.url)
-        verifyHash(file, update.hash)
-        installBundle(file)
-        // React Native will pick up the new bundle on next reload
-    }
+That fallback is your safety net. If anything about the downloaded bundle is wrong, returning `null` gets the user back to a known-good build.
+
+## Download: delta first, full bundle as fallback
+
+JS bundles are big; most releases change a small part of them. So the client asks the update service for a **binary delta** against the bundle it's running, applies it with `bspatch`, and falls back to downloading the full bundle if anything goes wrong:
+
+```kotlin
+suspend fun fetch(update: UpdateInfo): File {
+    val staged = runCatching { applyDelta(update) }   // bspatch against the current bundle
+        .getOrElse { downloadFullBundle(update) }      // any failure → full zip
+    check(sha256(staged) == update.sha256) { "Bundle hash mismatch, discarding" }
+    unzipInto(staging = staged, dir = stagingDirFor(update.label))
+    return staged
 }
 ```
 
-### 3. Dashboard
-An internal web app where our release team can:
-- Upload new bundles
-- Set rollout percentages (start at 5%, ramp to 100%)
-- Monitor crash rates per bundle version
-- Instantly rollback if something goes wrong
+Two rules that saved us repeatedly:
 
-### 4. Analytics Pipeline
-Every bundle load reports success/failure metrics. If the crash rate for a new bundle exceeds 2%,
-the system auto-rollbacks to the previous stable version.
+1. **Never write into the active bundle directory.** Stage everything; switch only by flipping a pointer.
+2. **Verify before you trust.** A hash check catches corruption. For tampering, I'd also recommend **signing bundles** and verifying the signature on device — TLS with certificate pinning protects the connection, not the artifact.
 
-## Key Design Decisions
+## Apply on the next warm start — never mid-session
 
-**Differential updates**: Instead of downloading the full bundle every time (2-5 MB), we compute
-binary diffs between versions. Most updates are 50-200 KB.
+Swapping JavaScript under a running user session is how you get half-old, half-new UI and state that no longer matches its code. So a downloaded bundle is marked **pending**, and only becomes active the next time the React Native host is (re)created.
 
-**Integrity verification**: Every bundle is signed with our private key. The native side verifies
-the signature before installing. This prevents tampering even if the CDN is compromised.
+It's slower than "update now", and it's worth it: users never see the app change under their thumb.
 
-**Graceful fallback**: If the new bundle crashes on startup, the native side detects this and
-automatically falls back to the embedded bundle that shipped with the APK.
+## Roll back automatically
 
-## Results
+A new bundle that crashes on start is the scariest OTA failure, because every launch loads the same broken bundle and crashes again — and the user can't reach the code that would fix it. The fix is a tiny state machine with a failure counter:
 
-- **Time to production**: From 3-5 days (Play Store review) to **< 30 minutes**
-- **Update adoption**: 95% of users on latest JS bundle within 24 hours
-- **Reliability**: Zero incidents in 18 months of operation
-- **Bundle size**: Average update is 120 KB (vs 3.5 MB full bundle)
+```text
+DOWNLOADED ──(next warm start)──▶ PENDING ──(JS signals "ready")──▶ ACTIVE
+                                     │
+                                     └──(crash, or no "ready" before a timeout)──▶ failures += 1
+                                                                                  │
+                                              failures ≥ 2 ──▶ ROLLED_BACK (embedded bundle)
+```
 
-## Should You Build Your Own?
+The JS side calls a native "I'm alive" method once the first screen renders. If that never happens — twice — the updater discards the bundle and goes back to the one inside the APK. No server round-trip needed; the device protects itself.
 
-Honestly, for most teams: **no**. Use CodePush or Expo Updates. They're battle-tested and free.
+## Channels and a kill switch
 
-Build your own only if you need:
-- Custom rollout logic beyond what CodePush offers
-- Full control over infrastructure for compliance reasons
-- Integration with existing internal tooling
-- Scale that exceeds CodePush's free tier significantly
+- **One channel per build flavor.** Dev, QA and production builds never see each other's bundles.
+- **The server decides targeting.** Rollout percentages and cohorts live in the backend, not in `if` statements on the client — so you can pause a rollout without shipping anything.
+- **A build-time kill switch.** One flag disables OTA entirely for a build. You hope you never need it.
 
-The maintenance cost is real -- we have one engineer spending ~20% of their time on this system.
-But for our use case at Jio's scale, the control and reliability are worth it.
+## Update UX is configuration, not code
+
+Not every update deserves the same treatment, so the server sends a *template* along with the update:
+
+| Template | When we use it |
+|---|---|
+| Silent | Bug fixes — apply on next warm start, say nothing |
+| Toast | Small features — a gentle "updated" note |
+| Modal | Bigger changes worth explaining |
+| Force update | Critical fixes — a blocking screen with retry |
+
+## Scaling to many teams: module federation
+
+The last piece is organisational. When several teams own different journeys, a single bundle means a single release train. **Module federation** (via Re.Pack) lets a team ship its own remote bundle on its own schedule, loaded by the host at runtime — with the same verification, staging and rollback rules applied to each.
+
+## Build or buy?
+
+Build your own only if you can say yes to most of these:
+
+- You need rollout control or data residency a hosted service can't provide.
+- You can staff it like a product: monitoring, on-call, and a backend that owns targeting.
+- You'll implement **staging, verification and automatic rollback** on day one — not "later".
+
+Otherwise, use a maintained solution and spend the time on your app. An OTA system is a deployment pipeline that runs on a hundred million devices you can't SSH into; treat it with that level of respect.

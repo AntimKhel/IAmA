@@ -60,6 +60,10 @@ kobweb {
                 )
                 link(rel = "stylesheet", href = "$base/css/rr.css")
                 link(rel = "stylesheet", href = "$base/css/sections.css")
+                link(rel = "stylesheet", href = "$base/css/blog.css")
+                // Syntax highlighting for blog code blocks (themed in blog.css); hl.js adds a ProGuard/R8 grammar.
+                script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js") { attributes["defer"] = "" }
+                script(src = "$base/js/hl.js") { attributes["defer"] = "" }
 
                 meta(name = "theme-color", content = "#07090d")
                 meta(name = "author", content = "Ritwik Raj Srivastava")
@@ -76,6 +80,14 @@ kobweb {
     }
     markdown {
         defaultLayout.set(".components.layouts.MarkdownLayout")
+
+        // Fenced code blocks keep their language and get a header + copy button (see components/blog/CodeBlock.kt).
+        handlers {
+            code.set { block ->
+                val lang = block.info.trim().substringBefore(' ').lowercase()
+                "dev.ritwik.iama.components.blog.CodeBlock(\"\"\"${block.literal.trimEnd().escapeTripleQuotedText()}\"\"\", \"$lang\")"
+            }
+        }
 
         // Auto-discover blog posts from markdown front matter. Posts with `draft: true` are left out
         // of the index (their pages still build, so they can be previewed by URL).

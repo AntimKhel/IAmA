@@ -37,7 +37,8 @@ class PageLayoutData(val title: String)
 fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
     val data = ctx.data.getValue<PageLayoutData>()
     LaunchedEffect(data.title) {
-        document.title = "Ritwik Raj Srivastava | ${data.title}"
+        document.title = if (data.title == "Home") "Ritwik Raj Srivastava — Tech Lead · Android & AI"
+        else "${data.title} — Ritwik Raj Srivastava"
     }
 
     Column(Modifier.fillMaxWidth().minHeight(100.vh)) {

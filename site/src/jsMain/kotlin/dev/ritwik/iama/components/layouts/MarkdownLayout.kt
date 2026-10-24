@@ -1,193 +1,30 @@
 package dev.ritwik.iama.components.layouts
 
-import androidx.compose.runtime.Composable
-import com.varabyte.kobweb.compose.css.*
-import com.varabyte.kobweb.compose.foundation.layout.Box
-import com.varabyte.kobweb.compose.foundation.layout.Column
-import com.varabyte.kobweb.compose.foundation.layout.Row
-import com.varabyte.kobweb.compose.ui.Alignment
-import com.varabyte.kobweb.compose.ui.Modifier
-import com.varabyte.kobweb.compose.ui.modifiers.*
+import androidx.compose.runtime.*
 import com.varabyte.kobweb.core.data.add
 import com.varabyte.kobweb.core.init.InitRoute
 import com.varabyte.kobweb.core.init.InitRouteContext
 import com.varabyte.kobweb.core.layout.Layout
 import com.varabyte.kobweb.core.rememberPageContext
-import com.varabyte.kobweb.silk.components.navigation.Link
-import com.varabyte.kobweb.silk.components.navigation.UncoloredLinkVariant
-import com.varabyte.kobweb.silk.components.text.SpanText
-import com.varabyte.kobweb.silk.style.CssStyle
-import com.varabyte.kobweb.silk.style.base
-import com.varabyte.kobweb.silk.style.toAttrs
-import com.varabyte.kobweb.silk.style.toModifier
-import com.varabyte.kobweb.silk.style.vars.color.ColorVar
-import com.varabyte.kobweb.silk.theme.colors.ColorMode
-import com.varabyte.kobweb.silk.theme.colors.palette.color
-import com.varabyte.kobweb.silk.theme.colors.palette.toPalette
+import com.varabyte.kobweb.navigation.BasePath
+import com.varabyte.kobweb.navigation.Router
 import com.varabyte.kobwebx.markdown.markdown
-import org.jetbrains.compose.web.css.*
-import org.jetbrains.compose.web.dom.Div
-import dev.ritwik.iama.*
-
-// ---------------------------------------------------------------------------
-// Blog post page styles (proper CssStyle, no inline hacks)
-// ---------------------------------------------------------------------------
-
-val BackButtonStyle = CssStyle {
-    base {
-        Modifier
-            .padding(topBottom = 0.5.cssRem, leftRight = 1.cssRem)
-            .borderRadius(0.5.cssRem)
-            .fontSize(0.9.cssRem)
-            .fontWeight(FontWeight.Medium)
-            .border(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
-            .backgroundColor(colorMode.toSitePalette().nearBackground)
-            .color(colorMode.toSitePalette().brand.primary)
-            .transition(
-                Transition.of("background-color", 200.ms, TransitionTimingFunction.EaseOut),
-                Transition.of("border-color", 200.ms, TransitionTimingFunction.EaseOut),
-            )
-    }
-    cssRule(":hover") {
-        Modifier
-            .backgroundColor(colorMode.toSitePalette().brand.primary.toRgb().copyf(alpha = 0.1f))
-            .border(1.px, LineStyle.Solid, colorMode.toSitePalette().brand.primary)
-    }
-}
-
-val BlogArticleStyle = CssStyle {
-    base {
-        Modifier
-            .fillMaxWidth()
-            .maxWidth(48.cssRem)
-            .margin(leftRight = autoLength)
-            .padding(top = 6.cssRem, bottom = 4.cssRem, leftRight = 2.cssRem)
-    }
-}
-
-val BlogHeaderStyle = CssStyle.base {
-    Modifier
-        .fillMaxWidth()
-        .margin(bottom = 2.5.cssRem)
-        .padding(bottom = 2.cssRem)
-        .borderBottom(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
-}
-
-val BlogTitleStyle = CssStyle.base {
-    Modifier.fontSize(2.4.cssRem).fontWeight(FontWeight.Bold).lineHeight(1.3)
-}
-
-val BlogFooterDividerStyle = CssStyle.base {
-    Modifier
-        .fillMaxWidth()
-        .margin(top = 3.cssRem)
-        .padding(top = 2.cssRem)
-        .borderTop(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
-}
-
-// ---------------------------------------------------------------------------
-// Markdown content rendering styles
-// ---------------------------------------------------------------------------
-
-val MarkdownContentStyle = CssStyle {
-    base { Modifier.fillMaxWidth().lineHeight(1.8).fontSize(1.05.cssRem) }
-
-    // Hide auto-generated H1 (we render our own header)
-    cssRule(" > h1:first-child") { Modifier.display(DisplayStyle.None) }
-
-    cssRule("h2") {
-        Modifier.fontSize(1.8.cssRem).fontWeight(FontWeight.Bold)
-            .margin(top = 3.cssRem, bottom = 1.cssRem).lineHeight(1.3)
-    }
-    cssRule("h3") {
-        Modifier.fontSize(1.4.cssRem).fontWeight(FontWeight.SemiBold)
-            .margin(top = 2.cssRem, bottom = 0.75.cssRem).lineHeight(1.3)
-    }
-    cssRule("h4") {
-        Modifier.fontSize(1.1.cssRem).fontWeight(FontWeight.SemiBold)
-            .margin(top = 1.5.cssRem, bottom = 0.5.cssRem)
-    }
-    cssRule("p") {
-        Modifier.margin(bottom = 1.25.cssRem)
-            .color(colorMode.toPalette().color.toRgb().copyf(alpha = 0.9f))
-    }
-    cssRule("ul, ol") {
-        Modifier.fillMaxWidth().overflowWrap(OverflowWrap.BreakWord)
-            .padding(left = 1.5.cssRem).margin(bottom = 1.25.cssRem)
-    }
-    cssRule("li") { Modifier.margin(bottom = 0.5.cssRem).lineHeight(1.7) }
-
-    cssRule("strong") {
-        Modifier.fontWeight(FontWeight.SemiBold).color(colorMode.toPalette().color)
-    }
-
-    // Inline code
-    cssRule("code") {
-        Modifier.fontFamily("JetBrains Mono", "monospace").fontSize(0.9.cssRem)
-            .padding(topBottom = 0.15.cssRem, leftRight = 0.4.cssRem)
-            .borderRadius(0.25.cssRem)
-            .backgroundColor(colorMode.toSitePalette().nearBackground)
-            .color(colorMode.toSitePalette().brand.primary)
-            .fontWeight(FontWeight.Medium)
-    }
-
-    // Code blocks
-    cssRule("pre") {
-        Modifier.margin(top = 0.5.cssRem, bottom = 1.5.cssRem).fillMaxWidth()
-            .borderRadius(0.75.cssRem)
-            .border(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
-            .overflow { x(Overflow.Hidden) }
-    }
-    cssRule("pre > code") {
-        Modifier.display(DisplayStyle.Block).fillMaxWidth()
-            .backgroundColor(colorMode.toSitePalette().nearBackground)
-            .padding(1.25.cssRem).fontSize(0.85.cssRem).lineHeight(1.6)
-            .borderRadius(0.px).overflow { x(Overflow.Auto) }
-    }
-
-    // Blockquotes
-    cssRule("blockquote") {
-        Modifier
-            .margin(topBottom = 1.5.cssRem, leftRight = 0.px)
-            .padding(topBottom = 0.5.cssRem, leftRight = 1.25.cssRem)
-            .borderLeft(4.px, LineStyle.Solid, colorMode.toSitePalette().brand.primary)
-            .backgroundColor(colorMode.toSitePalette().brand.primary.toRgb().copyf(alpha = 0.05f))
-            .borderRadius(0.px, 0.5.cssRem, 0.5.cssRem, 0.px)
-    }
-
-    // Tables
-    cssRule("table") {
-        Modifier.fillMaxWidth().margin(topBottom = 1.5.cssRem).borderRadius(0.5.cssRem)
-    }
-    cssRule("th") {
-        Modifier.padding(0.75.cssRem).textAlign(TextAlign.Start)
-            .fontWeight(FontWeight.SemiBold)
-            .backgroundColor(colorMode.toSitePalette().nearBackground)
-            .fontSize(0.9.cssRem)
-            .border(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
-    }
-    cssRule("td") {
-        Modifier.padding(0.75.cssRem).fontSize(0.95.cssRem)
-            .border(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
-    }
-
-    // Links in articles
-    cssRule("a") {
-        Modifier.color(colorMode.toSitePalette().brand.primary)
-            .fontWeight(FontWeight.Medium).textDecorationLine(TextDecorationLine.None)
-    }
-
-    // Horizontal rules
-    cssRule("hr") {
-        Modifier.margin(topBottom = 2.cssRem)
-            .border(0.px)
-            .borderTop(1.px, LineStyle.Solid, colorMode.toSitePalette().border)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// MarkdownLayout composable
-// ---------------------------------------------------------------------------
+import dev.ritwik.iama.blog.BlogEntry
+import dev.ritwik.iama.blog.blogEntries
+import dev.ritwik.iama.data.Profile
+import dev.ritwik.iama.util.UiState
+import dev.ritwik.iama.util.clamp01
+import dev.ritwik.iama.util.css
+import dev.ritwik.iama.util.resumeHref
+import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.delay
+import org.jetbrains.compose.web.attributes.ATarget
+import org.jetbrains.compose.web.attributes.target
+import org.jetbrains.compose.web.dom.*
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.asList
+import org.w3c.dom.events.Event
 
 @InitRoute
 fun initMarkdownLayout(ctx: InitRouteContext) {
@@ -197,43 +34,166 @@ fun initMarkdownLayout(ctx: InitRouteContext) {
     ctx.data.add(PageLayoutData(title))
 }
 
+private class Heading(val id: String, val text: String)
+
+/** Layout for every blog post: hero, reading progress, sticky table of contents, author card, more posts. */
 @Composable
 @Layout(".components.layouts.PageLayout")
 fun MarkdownLayout(content: @Composable () -> Unit) {
     val ctx = rememberPageContext()
-    val sitePalette = ColorMode.current.toSitePalette()
-    val title = ctx.markdown?.frontMatter?.get("title")?.firstOrNull() ?: "Untitled"
-    val date = ctx.markdown?.frontMatter?.get("date")?.firstOrNull()
-    val tagsRaw = ctx.markdown?.frontMatter?.get("tags")?.firstOrNull() ?: ""
-    val tags = tagsRaw.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+    val router = ctx.router
+    val fm = ctx.markdown?.frontMatter
+    val title = fm?.get("title")?.firstOrNull() ?: "Untitled"
+    val date = fm?.get("date")?.firstOrNull()
+    val description = fm?.get("description")?.firstOrNull()
+    val tags = (fm?.get("tags")?.firstOrNull() ?: "").split(",").map { it.trim() }.filter { it.isNotEmpty() }
+    val route = ctx.route.path.trimEnd('/')
+    // The page path may carry the site's base path (/IAmA/…), so match on the route suffix.
+    val entry = blogEntries.firstOrNull { route.endsWith(it.route.trimEnd('/')) }
+    val more = blogEntries.filter { it !== entry }.take(2)
 
-    Column(BlogArticleStyle.toModifier()) {
-        // Back button
-        Link("/blog", BackButtonStyle.toModifier().margin(bottom = 2.cssRem), variant = UncoloredLinkVariant) {
-            SpanText("\u2190 Back to Blog")
+    var headings by remember(route) { mutableStateOf(emptyList<Heading>()) }
+    var active by remember(route) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(route) {
+        if (description != null) setMetaDescription(description)
+        delay(60) // let the markdown body render
+        headings = document.querySelectorAll(".post-body h2[id]").asList().map {
+            val el = it as HTMLElement
+            Heading(el.id, el.textContent ?: "")
         }
+    }
 
-        // Post header
-        Column(BlogHeaderStyle.toModifier().gap(0.75.cssRem)) {
-            SpanText(title, BlogTitleStyle.toModifier())
-            if (date != null) {
-                SpanText(date, MonoLabelStyle.toModifier())
-            }
-            if (tags.isNotEmpty()) {
-                Row(Modifier.gap(0.5.cssRem).flexWrap(FlexWrap.Wrap)) {
-                    tags.forEach { tag -> SpanText(tag, ChipStyle.toModifier()) }
+    // Highlight the heading currently being read.
+    DisposableEffect(headings) {
+        if (headings.isEmpty()) return@DisposableEffect onDispose { }
+        val passive: dynamic = js("({passive: true})")
+        val onScroll: (Event) -> Unit = {
+            val line = window.innerHeight * 0.3
+            active = headings.lastOrNull { h ->
+                (document.getElementById(h.id)?.getBoundingClientRect()?.top ?: 1e9) < line
+            }?.id ?: headings.first().id
+        }
+        window.addEventListener("scroll", onScroll, passive)
+        onScroll(Event("scroll"))
+        onDispose { window.removeEventListener("scroll", onScroll, passive) }
+    }
+
+    ReadingProgress()
+
+    Article({ classes("post") }) {
+        Header({ classes("post-hero") }) {
+            Div({ classes("post-hero-glow"); attr("aria-hidden", "true") })
+            Div({ classes("post-wrap") }) {
+                RouteLink("/blog", router, "post-back") { I({ classes("fa-solid", "fa-arrow-left") }); Text("All posts") }
+                if (tags.isNotEmpty()) Div({ classes("post-tags") }) { tags.forEach { Span { Text(it) } } }
+                H1({ classes("post-title") }) { Text(title) }
+                if (description != null) P({ classes("post-desc") }) { Text(description) }
+                Div({ classes("post-meta") }) {
+                    Span({ classes("post-avatar") }) { Text("R") }
+                    Div {
+                        Div({ classes("post-author") }) { Text(Profile.name) }
+                        Div({ classes("post-when") }) {
+                            Text(listOfNotNull(date, entry?.let { "${it.readingMinutes} min read" }).joinToString(" · "))
+                        }
+                    }
                 }
             }
         }
 
-        // Markdown content
-        Div(MarkdownContentStyle.toAttrs()) { content() }
+        Div({ classes("post-grid") }) {
+            Div({ classes("post-body", "prose") }) { content() }
+            Aside({ classes("post-toc") }) {
+                if (headings.size >= 2) {
+                    Div({ classes("toc-title") }) { Text("On this page") }
+                    Nav {
+                        headings.forEach { h ->
+                            A("#${h.id}", {
+                                if (active == h.id) classes("on")
+                                onClick {
+                                    it.preventDefault()
+                                    document.getElementById(h.id)?.asDynamic()?.scrollIntoView(js("({behavior: 'smooth', block: 'start'})"))
+                                }
+                            }) { Text(h.text) }
+                        }
+                    }
+                }
+            }
+        }
 
-        // Bottom back link
-        Box(BlogFooterDividerStyle.toModifier(), contentAlignment = Alignment.CenterStart) {
-            Link("/blog", BackButtonStyle.toModifier(), variant = UncoloredLinkVariant) {
-                SpanText("\u2190 Back to all posts")
+        Footer({ classes("post-end", "post-wrap") }) {
+            Div({ classes("author-card") }) {
+                Span({ classes("post-avatar", "big") }) { Text("R") }
+                Div({ classes("author-text") }) {
+                    Div({ classes("author-name") }) { Text("Written by ${Profile.name}") }
+                    P { Text("${Profile.headline}. I lead engineering across MyJio and write about Android, AI-native engineering and shipping at scale.") }
+                    Div({ classes("author-actions") }) {
+                        A(resumeHref, { classes("rr-btn", "primary"); attr("download", Profile.resumeFileName) }) {
+                            I({ classes("fa-solid", "fa-file-arrow-down") }); Text("Résumé")
+                        }
+                        A(Profile.linkedIn, { classes("rr-btn"); target(ATarget.Blank); attr("rel", "noopener") }) {
+                            I({ classes("fa-brands", "fa-linkedin-in") }); Text("LinkedIn")
+                        }
+                        Button({ classes("rr-btn"); onClick { UiState.contactOpen = true } }) {
+                            I({ classes("fa-solid", "fa-paper-plane") }); Text("Contact")
+                        }
+                    }
+                }
+            }
+            if (more.isNotEmpty()) {
+                Div({ classes("more-title") }) { Text("Keep reading") }
+                Div({ classes("more-grid") }) { more.forEach { MoreCard(it, router) } }
             }
         }
     }
+}
+
+@Composable
+private fun MoreCard(p: BlogEntry, router: Router) {
+    RouteLink(p.route, router, "more-card") {
+        Div({ classes("more-meta") }) { Text("${p.date} · ${p.readingMinutes} min") }
+        Div({ classes("more-name") }) { Text(p.title) }
+        Div({ classes("more-desc") }) { Text(p.description) }
+    }
+}
+
+/** An anchor with a real (base-path-prefixed) href that navigates client-side. */
+@Composable
+internal fun RouteLink(path: String, router: Router, cls: String, content: @Composable () -> Unit) {
+    A(BasePath.prependTo(path), {
+        classes(*cls.split(" ").toTypedArray())
+        onClick { e ->
+            if (!e.metaKey && !e.ctrlKey) {
+                e.preventDefault()
+                router.tryRoutingTo(path)
+            }
+        }
+    }) { content() }
+}
+
+@Composable
+private fun ReadingProgress() {
+    Div({
+        classes("read-progress")
+        ref { el ->
+            val passive: dynamic = js("({passive: true})")
+            val update: (Event) -> Unit = {
+                val doc = document.documentElement
+                val max = ((doc?.scrollHeight ?: 1) - window.innerHeight).toDouble()
+                el.style.setProperty("--rp", clamp01(if (max > 0) window.scrollY / max else 0.0).css())
+            }
+            window.addEventListener("scroll", update, passive)
+            update(Event("scroll"))
+            onDispose { window.removeEventListener("scroll", update, passive) }
+        }
+    })
+}
+
+private fun setMetaDescription(text: String) {
+    val head = document.head ?: return
+    val meta = head.querySelector("meta[name=description]") ?: document.createElement("meta").also {
+        it.setAttribute("name", "description")
+        head.appendChild(it)
+    }
+    meta.setAttribute("content", text)
 }
