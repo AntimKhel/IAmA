@@ -20,6 +20,8 @@ import org.jetbrains.compose.web.css.vh
 import org.jetbrains.compose.web.dom.Div
 import dev.ritwik.iama.components.sections.Footer
 import dev.ritwik.iama.components.sections.NavHeader
+import dev.ritwik.iama.components.phone.AppHost
+import dev.ritwik.iama.components.phone.AppWindowHost
 import dev.ritwik.iama.components.recruiter.ContactSheet
 import dev.ritwik.iama.components.recruiter.Toast
 
@@ -50,6 +52,7 @@ fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
         }
         Footer(Modifier.fillMaxWidth())
     }
+    AppWindowHost(AppHost.FULL)
     ContactSheet()
     Toast()
 }

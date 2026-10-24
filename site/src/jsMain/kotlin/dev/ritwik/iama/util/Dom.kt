@@ -33,6 +33,19 @@ object HtmlState {
         root?.classList?.remove("rr-booting")
         root?.classList?.add("rr-ready")
     }
+
+    private const val TAPPED_KEY = "rr-tapped"
+
+    /** Restores the "visitor already knows the apps are tappable" flag. */
+    fun restoreTapped() {
+        if (runCatching { window.localStorage.getItem(TAPPED_KEY) }.getOrNull() != null) root?.classList?.add(TAPPED_KEY)
+    }
+
+    /** First tap on any app retires the tap hints (finger, halos, callout) for good. */
+    fun markTapped() {
+        root?.classList?.add(TAPPED_KEY)
+        runCatching { window.localStorage.setItem(TAPPED_KEY, "1") }
+    }
 }
 
 val prefersReducedMotion: Boolean

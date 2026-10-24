@@ -20,14 +20,14 @@ version = "1.0-SNAPSHOT"
 kobweb {
     app {
         index {
-            description.set("Ritwik Raj Srivastava — Tech Lead, Android. Jetpack Compose, React Native, build performance and design systems at 500M+ install scale.")
+            description.set("Ritwik Raj Srivastava — Software Engineer & Tech Lead, Android & AI. 7+ years shipping MyJio, JioFinance and JioMart; agentic AI, AI-native SDLC, Compose and React Native.")
 
             head.add {
                 // Must match `site.basePath` in .kobweb/conf.yaml; head links are not auto-prefixed.
                 val base = "/IAmA"
                 val siteUrl = "https://antimkhel.github.io/IAmA/"
-                val title = "Ritwik Raj Srivastava — Tech Lead, Android"
-                val summary = "I lead Android engineering for MyJio. Compose, React Native, OTA, R8 and design systems at scale."
+                val title = "Ritwik Raj Srivastava — Tech Lead, Android & AI"
+                val summary = "7+ years shipping Android to hundreds of millions. Agentic AI, AI-native SDLC, Compose design systems and award-winning React Native OTA."
 
                 // Decide *before* JS loads whether this visit plays the boot animation, so the
                 // exported static snapshot never flashes ahead of it (see rr.css: html.rr-booting).
@@ -62,7 +62,7 @@ kobweb {
 
                 meta(name = "theme-color", content = "#07090d")
                 meta(name = "author", content = "Ritwik Raj Srivastava")
-                meta(name = "keywords", content = "Android, Kotlin, Jetpack Compose, React Native, Tech Lead, R8, Design System, MyJio")
+                meta(name = "keywords", content = "Android, Kotlin, Jetpack Compose, React Native, Tech Lead, Agentic AI, LLM, AI-native SDLC, Forward Deployed Engineer, MyJio")
                 meta { attributes["property"] = "og:type"; content = "website" }
                 meta { attributes["property"] = "og:title"; content = title }
                 meta { attributes["property"] = "og:description"; content = summary }
@@ -76,12 +76,15 @@ kobweb {
     markdown {
         defaultLayout.set(".components.layouts.MarkdownLayout")
 
-        // Auto-discover blog posts from markdown front matter
+        // Auto-discover blog posts from markdown front matter. Posts with `draft: true` are left out
+        // of the index (their pages still build, so they can be previewed by URL).
+        val markdownDir = layout.projectDirectory.dir("src/jsMain/resources/markdown").asFile
         process.set { markdownEntries ->
             val dateFormatter = DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH)
 
             val blogEntries = markdownEntries
                 .filter { it.filePath.startsWith("blog/") }
+                .filter { it.frontMatter["draft"]?.firstOrNull()?.trim() != "true" }
                 .sortedByDescending { entry ->
                     val dateStr = entry.frontMatter["date"]?.firstOrNull() ?: ""
                     try { LocalDate.parse(dateStr, dateFormatter) } catch (_: Exception) { LocalDate.MIN }
@@ -89,7 +92,14 @@ kobweb {
 
             if (blogEntries.isEmpty()) return@set
 
-            fun String.escapeKotlin() = replace("\\", "\\\\").replace("\"", "\\\"")
+            fun String.escapeKotlin() = replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$")
+
+            fun readingMinutes(filePath: String): Int {
+                val body = markdownDir.resolve(filePath).takeIf { it.exists() }?.readText()
+                    ?.substringAfter("\n---") ?: return 1 // body after the closing front-matter fence
+                val words = body.split(Regex("\\s+")).count { it.isNotBlank() }
+                return maxOf(1, (words + 219) / 220)
+            }
 
             val entriesCode = blogEntries.joinToString(",\n    ") { entry ->
                 val fm = entry.frontMatter
@@ -106,6 +116,8 @@ kobweb {
         description = "$description",
         route = "${entry.route}",
         tags = listOf($tagsList),
+        readingMinutes = ${readingMinutes(entry.filePath)},
+        content = { ${entry.fqn}() },
     )"""
             }
 
@@ -115,12 +127,17 @@ kobweb {
                     appendLine("// Auto-generated from markdown front matter. Do not edit.")
                     appendLine("package dev.ritwik.iama.blog")
                     appendLine()
-                    appendLine("data class BlogEntry(")
+                    appendLine("import androidx.compose.runtime.Composable")
+                    appendLine()
+                    appendLine("class BlogEntry(")
                     appendLine("    val title: String,")
                     appendLine("    val date: String,")
                     appendLine("    val description: String,")
                     appendLine("    val route: String,")
                     appendLine("    val tags: List<String>,")
+                    appendLine("    val readingMinutes: Int,")
+                    appendLine("    /** The post body, renderable anywhere (e.g. inside the phone's Blog app). */")
+                    appendLine("    val content: @Composable () -> Unit,")
                     appendLine(")")
                     appendLine()
                     appendLine("val blogEntries: List<BlogEntry> = listOf(")

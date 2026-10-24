@@ -9,6 +9,7 @@ import dev.ritwik.iama.components.phone.Dock
 import dev.ritwik.iama.components.phone.PhoneFrame
 import dev.ritwik.iama.components.phone.rememberClock
 import dev.ritwik.iama.data.Profile
+import dev.ritwik.iama.data.floaterStats
 import dev.ritwik.iama.data.heroStats
 import dev.ritwik.iama.util.HtmlState
 import dev.ritwik.iama.util.UiState
@@ -32,6 +33,7 @@ fun HeroScene() {
 
     LaunchedEffect(Unit) {
         if (AppGlobals.isExporting) return@LaunchedEffect
+        HtmlState.restoreTapped()
         if (booting) {
             runCatching { window.sessionStorage.setItem(BOOT_KEY, "1") }
         } else {
@@ -69,6 +71,7 @@ fun HeroScene() {
             }
 
             Floaters()
+            TapCallout()
             Desk()
             ScrollHint()
         }
@@ -181,10 +184,10 @@ private fun HeroCopy() {
         }
 
         Div({ classes("rr-roles", "rr-anim"); style { property("--d", "0.45s") } }) {
-            Span({ classes("bar") })
-            Div({ classes("rr-rotator") }) {
-                Div({ classes("rr-rotator-track") }) {
-                    (Profile.roles + Profile.roles.first()).forEach { Span { Text(it) } }
+            Span({ classes("lead") }) { Text("I'm your next") }
+            Span({ classes("rr-rotator"); attr("aria-label", Profile.roles.joinToString(", ")) }) {
+                Profile.roles.forEachIndexed { i, role ->
+                    Span({ style { property("--i", i); property("--n", Profile.roles.size) }; attr("aria-hidden", "true") }) { Text(role) }
                 }
             }
         }
@@ -223,8 +226,8 @@ private fun HeroCopy() {
 
         Div({ classes("rr-meta", "rr-anim"); style { property("--d", "0.8s") } }) {
             Span { I({ classes("fa-solid", "fa-location-dot") }); Text(Profile.location) }
-            Span { I({ classes("fa-brands", "fa-android") }); Text("${Profile.yearsOfExperience} yrs Android") }
-            Span { I({ classes("fa-solid", "fa-code") }); Text("Kotlin · Compose · React Native") }
+            Span { I({ classes("fa-brands", "fa-android") }); Text("${Profile.yearsOfExperience} years") }
+            Span { I({ classes("fa-solid", "fa-wand-magic-sparkles") }); Text("Android · AI · React Native") }
         }
 
         MobileHome()
@@ -291,7 +294,7 @@ private val floaterSpecs = listOf(
 @Composable
 private fun Floaters() {
     Div({ classes("rr-floaters"); attr("aria-hidden", "true") }) {
-        heroStats.zip(floaterSpecs).forEachIndexed { i, (stat, spec) ->
+        floaterStats.zip(floaterSpecs).forEachIndexed { i, (stat, spec) ->
             Div({
                 classes("rr-floater")
                 style {
@@ -306,13 +309,27 @@ private fun Floaters() {
             }) {
                 Div({ classes("rr-floater-inner") }) {
                     Div({ classes("ic"); style { property("--a", spec.a); property("--b", spec.b) } }) {
-                        I({ classes(if (stat.icon == "fa-google-play" || stat.icon == "fa-android") "fa-brands" else "fa-solid", stat.icon) })
+                        I({ classes(*stat.icon.split(" ").toTypedArray()) })
                     }
                     Div {
                         Div({ classes("v") }) { Text(stat.value) }
                         Div({ classes("l") }) { Text(stat.label) }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Speech bubble beside the phone telling visitors the apps are real. */
+@Composable
+private fun TapCallout() {
+    Div({ classes("rr-callout"); attr("aria-hidden", "true") }) {
+        Div({ classes("rr-callout-inner") }) {
+            Span({ classes("hand") }) { Text("👆") }
+            Div {
+                Div({ classes("t") }) { Text("Psst — these apps work.") }
+                Div({ classes("s") }) { Text("Tap one to look around.") }
             }
         }
     }

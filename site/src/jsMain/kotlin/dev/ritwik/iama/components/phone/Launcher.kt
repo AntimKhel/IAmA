@@ -3,6 +3,7 @@ package dev.ritwik.iama.components.phone
 import androidx.compose.runtime.Composable
 import com.varabyte.kobweb.core.rememberPageContext
 import dev.ritwik.iama.data.Profile
+import dev.ritwik.iama.util.HtmlState
 import dev.ritwik.iama.util.UiState
 import dev.ritwik.iama.util.goToSection
 import dev.ritwik.iama.util.resumeHref
@@ -14,6 +15,7 @@ import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.I
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
+import org.w3c.dom.Element
 
 sealed interface AppAction {
     data class Section(val id: String) : AppAction
@@ -21,6 +23,7 @@ sealed interface AppAction {
     data class External(val url: String) : AppAction
     data object Resume : AppAction
     data object Contact : AppAction
+    data class Open(val screen: AppScreen) : AppAction
 }
 
 class LauncherApp(
@@ -32,38 +35,42 @@ class LauncherApp(
 )
 
 object Apps {
-    val work = LauncherApp("Work", "fa-solid fa-briefcase", "#2f6bff", "#7c4dff", AppAction.Section("experience"))
-    val products = LauncherApp("Products", "fa-solid fa-layer-group", "#ff8a3d", "#ff3d7f", AppAction.Section("showcase"))
-    val blog = LauncherApp("Blog", "fa-solid fa-newspaper", "#00bfa5", "#2f6bff", AppAction.Route("/blog"))
-    val impact = LauncherApp("Impact", "fa-solid fa-gauge-high", "#3ddc84", "#00bfa5", AppAction.Section("showcase"))
-    val contact = LauncherApp("Contact", "fa-solid fa-paper-plane", "#ff3d7f", "#7c4dff", AppAction.Contact)
+    val work = LauncherApp("Work", "fa-solid fa-briefcase", "#2f6bff", "#7c4dff", AppAction.Open(AppScreen.WORK))
+    val products = LauncherApp("Products", "fa-solid fa-layer-group", "#ff8a3d", "#ff3d7f", AppAction.Open(AppScreen.STORE))
+    val blog = LauncherApp("Blog", "fa-solid fa-newspaper", "#00bfa5", "#2f6bff", AppAction.Open(AppScreen.BLOG))
+    val about = LauncherApp("About", "fa-solid fa-user-astronaut", "#3ddc84", "#00bfa5", AppAction.Open(AppScreen.ABOUT))
+    val contact = LauncherApp("Contact", "fa-solid fa-address-card", "#ff3d7f", "#7c4dff", AppAction.Open(AppScreen.CONTACT))
     val resume = LauncherApp("Résumé", "fa-solid fa-file-arrow-down", "#6cf0a6", "#00bfa5", AppAction.Resume)
     val linkedIn = LauncherApp("LinkedIn", "fa-brands fa-linkedin-in", "#0a66c2", "#2f6bff", AppAction.External(Profile.linkedIn))
     val github = LauncherApp("GitHub", "fa-brands fa-github", "#3b434f", "#151a21", AppAction.External(Profile.github))
-    val skills = LauncherApp("Skills", "fa-solid fa-code", "#7c4dff", "#b06bff", AppAction.Section("skills"))
-    val awards = LauncherApp("Awards", "fa-solid fa-award", "#ffb13d", "#ff8a3d", AppAction.Section("certifications"))
+    val skills = LauncherApp("Skills", "fa-solid fa-code", "#7c4dff", "#b06bff", AppAction.Open(AppScreen.SKILLS))
+    val awards = LauncherApp("Awards", "fa-solid fa-trophy", "#ffb13d", "#ff8a3d", AppAction.Open(AppScreen.AWARDS))
 
-    val phone = LauncherApp("Phone", "fa-solid fa-phone", "#3ddc84", "#00bfa5", AppAction.Contact)
+    val phone = LauncherApp("Phone", "fa-solid fa-phone", "#3ddc84", "#00bfa5", AppAction.Open(AppScreen.CONTACT))
     val mail = LauncherApp("Mail", "fa-solid fa-envelope", "#2f6bff", "#00bfa5", AppAction.External("mailto:${Profile.email}"))
-    val play = LauncherApp("Play", "fa-brands fa-google-play", "#00bfa5", "#7c4dff", AppAction.Section("showcase"))
-    val browser = LauncherApp("Browser", "fa-solid fa-compass", "#ff8a3d", "#2f6bff", AppAction.Route("/blog"))
+    val play = LauncherApp("Play", "fa-brands fa-google-play", "#00bfa5", "#7c4dff", AppAction.Open(AppScreen.STORE))
+    val browser = LauncherApp("Browser", "fa-solid fa-compass", "#ff8a3d", "#2f6bff", AppAction.Open(AppScreen.BLOG))
 
-    val grid = listOf(work, products, blog, impact, contact, resume, linkedIn, github)
-    val desk = listOf(work, products, blog, impact, skills, awards, contact, resume, linkedIn, github)
+    val grid = listOf(work, products, blog, about, contact, resume, linkedIn, github)
+    val desk = listOf(work, products, blog, about, skills, awards, contact, resume, linkedIn, github)
     val dock = listOf(phone, mail, play, browser)
 }
 
 /** One launcher icon. Links (résumé, external) render as real anchors so they work without JS routing. */
 @Composable
-fun AppIcon(app: LauncherApp, index: Int = 0) {
+fun AppIcon(app: LauncherApp, index: Int = 0, hint: Boolean = false) {
     val router = rememberPageContext().router
+    val host = LocalAppHost.current
     val styleVars: org.jetbrains.compose.web.css.StyleScope.() -> Unit = {
         property("--a", app.from)
         property("--b", app.to)
         property("--i", index)
     }
     val content: @Composable () -> Unit = {
-        Div({ classes("ico") }) { I({ classes(*app.icon.split(" ").toTypedArray()) }) }
+        Div({ classes("ico") }) {
+            I({ classes(*app.icon.split(" ").toTypedArray()) })
+            if (hint) Span({ classes("rr-finger"); attr("aria-hidden", "true") })
+        }
         Span { Text(app.label) }
     }
 
@@ -76,6 +83,7 @@ fun AppIcon(app: LauncherApp, index: Int = 0) {
                 attr("rel", "noopener")
             }
             attr("aria-label", app.label)
+            onClick { HtmlState.markTapped() }
         }) { content() }
 
         AppAction.Resume -> A(resumeHref, {
@@ -83,14 +91,17 @@ fun AppIcon(app: LauncherApp, index: Int = 0) {
             style(styleVars)
             attr("download", Profile.resumeFileName)
             attr("aria-label", "Download résumé")
+            onClick { HtmlState.markTapped() }
         }) { content() }
 
         else -> Button({
             classes("rr-app")
             style(styleVars)
             attr("aria-label", app.label)
-            onClick {
+            onClick { e ->
+                HtmlState.markTapped()
                 when (action) {
+                    is AppAction.Open -> PhoneState.open(app, host, e.target as? Element)
                     is AppAction.Section -> goToSection(action.id, router)
                     is AppAction.Route -> router.tryRoutingTo(action.path)
                     AppAction.Contact -> UiState.contactOpen = true

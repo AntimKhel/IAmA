@@ -2,7 +2,7 @@ package dev.ritwik.iama.data
 
 // ---------------------------------------------------------------------------
 // Single source of truth for everything the site says about Ritwik.
-// Values marked TODO are placeholders until real details are provided.
+// Sourced from the 2026 résumé (resources/public/resume.pdf).
 // ---------------------------------------------------------------------------
 
 object Profile {
@@ -10,40 +10,48 @@ object Profile {
     const val firstName = "Ritwik"
     const val shortName = "Ritwik Raj"
     const val lastName = "Srivastava"
-    const val headline = "Tech Lead · Android"
-    const val location = "Mumbai, India" // TODO: confirm
-    const val yearsOfExperience = "6+"
-    const val availability = "Open to Tech Lead / Staff Android roles"
+    const val headline = "Tech Lead · Android & AI"
+    const val location = "Mumbai, India"
+    const val yearsOfExperience = "7+"
+    const val availability = "Open to Tech Lead · Senior · FDE roles"
 
     const val summary =
-        "I lead Android engineering for MyJio, one of India's most-installed apps. " +
-            "I build at the seam between Jetpack Compose and React Native — design-system parity, " +
-            "OTA delivery, deeplink routing, build performance and the kind of R8 archaeology " +
-            "that shaves tens of megabytes off a release."
+        "7+ years shipping Android to hundreds of millions of people. At Jio I lead engineering " +
+            "across MyJio — agentic AI in the product, an AI-native SDLC in how we build it, a Compose " +
+            "design system, and an award-winning React Native OTA platform."
 
     // Contact — email is shown, phone is assembled at runtime from parts so simple scrapers miss it.
-    const val email = "TODO@example.com" // TODO: personal email
-    val phoneParts = listOf("+91", "00000", "00000") // TODO: real number, split in parts
+    const val email = "raj.ritwik96@gmail.com"
+    val phoneParts = listOf("+91", "70042", "32185")
     const val linkedIn = "https://www.linkedin.com/in/ritwik787/"
-    const val github = "https://github.com/AntimKhel" // TODO: confirm handle
-    const val resumePath = "/resume.pdf" // TODO: drop the PDF into resources/public/resume.pdf
+    const val github = "https://github.com/AntimKhel"
+    const val resumePath = "/resume.pdf"
     const val resumeFileName = "Ritwik-Raj-Srivastava-Resume.pdf"
 
-    val roles = listOf("Tech Lead · Android", "Jetpack Compose", "React Native", "Build & R8 performance", "Design systems")
+    /** Completes the sentence "I'm your next …" in the hero. */
+    val roles = listOf("Tech Lead", "AI-native Engineer", "Forward Deployed Engineer", "Senior Android Engineer")
 }
 
 data class Stat(val value: String, val label: String, val icon: String)
 
 val heroStats = listOf(
-    Stat("500M+", "installs on apps I ship", "fa-google-play"),
-    Stat("6+ yrs", "building Android at scale", "fa-android"),
-    Stat("82%", "obfuscation after R8 cleanup", "fa-shield-halved"),
+    Stat("500M+", "installs on MyJio", "fa-brands fa-google-play"),
+    Stat("7+ yrs", "building Android at scale", "fa-brands fa-android"),
+    Stat("Skoch Gold", "2026 · for JioAirSync", "fa-solid fa-trophy"),
+)
+
+/** Cards floating around the phone (the phone itself already shows the award). */
+val floaterStats = listOf(
+    heroStats[0],
+    heroStats[1],
+    Stat("AI-native", "SDLC across MyJio", "fa-solid fa-wand-magic-sparkles"),
 )
 
 data class Experience(
     val company: String,
     val role: String,
     val period: String,
+    val location: String,
     val highlights: List<String>,
     val techStack: List<String>,
 )
@@ -51,62 +59,61 @@ data class Experience(
 val experiences = listOf(
     Experience(
         company = "Reliance Jio",
-        role = "Software Development Engineer → Tech Lead",
+        role = "Software Development Engineer · Tech Lead",
         period = "Oct 2021 — Present",
+        location = "Mumbai",
         highlights = listOf(
-            "Tech lead for the MyJio Android app — a native Compose shell hosting React Native, WebView and mini-app surfaces",
-            "Drove design-system parity across Jetpack Compose and React Native with a shared theme-token contract",
-            "Built AirSync, an in-house over-the-air update platform for React Native bundles",
-            "Untangled R8 keep rules: obfuscation from 24% to 82%, ~40 MB less dex in a controlled build",
-            "Shipped across JioFinance, JioMart and multiple embeddable SDKs",
+            "Spearheaded AI transformation across the MyJio ecosystem with an AI-native SDLC (ADLC) that accelerates development velocity",
+            "Architected MyJio Agentic — an AI assistant that automates complex user tasks through agentic workflows",
+            "Led cross-functional Android development for MyJio, JioAICloud, JioMart and Jio Financial Services",
+            "Built JioAirSync, a custom React Native OTA platform for hot-patching and feature delivery — Skoch Award 2026 Gold",
+            "Engineered the Jio Design System in Jetpack Compose for consistency across high-traffic apps",
         ),
-        techStack = listOf("Kotlin", "Jetpack Compose", "React Native", "Gradle", "R8"),
+        techStack = listOf("Kotlin", "Jetpack Compose", "React Native", "Agentic AI", "LLMs"),
     ),
     Experience(
         company = "HSBC",
         role = "Software Developer",
         period = "Jul 2019 — Oct 2021",
+        location = "Pune",
         highlights = listOf(
-            "Built scalable Android features for payments in Kotlin",
-            "Raised test coverage across UI, unit, integration and snapshot tests",
+            "Architected scalable payment journeys for international banking with Kotlin and MVVM",
+            "Improved stability by expanding unit, UI and integration test coverage",
         ),
-        techStack = listOf("Kotlin", "Android", "Testing", "CI/CD"),
+        techStack = listOf("Kotlin", "MVVM", "Testing", "Payments"),
     ),
     Experience(
         company = "Oxigen Services",
         role = "Software Developer Intern",
         period = "May 2018 — Jul 2018",
-        highlights = listOf(
-            "Integrated Google Maps into a consumer payments app",
-            "Bug fixing and quality assurance",
-        ),
-        techStack = listOf("Android", "Google Maps SDK"),
+        location = "Gurugram",
+        highlights = listOf("Integrated the Google Maps API into a consumer payments app for location-based services"),
+        techStack = listOf("Android", "Google Maps"),
     ),
 )
 
 data class SkillCategory(val name: String, val skills: List<String>)
 
 val skillCategories = listOf(
-    SkillCategory("Languages", listOf("Kotlin", "Java", "JavaScript", "TypeScript")),
-    SkillCategory("Android", listOf("Jetpack Compose", "Coroutines & Flow", "Hilt", "Room", "WorkManager")),
-    SkillCategory("Cross-platform", listOf("React Native (New Arch)", "TurboModules", "Hermes", "Re.Pack")),
-    SkillCategory("Build & Perf", listOf("Gradle", "R8 / ProGuard", "Baseline Profiles", "Perfetto")),
-    SkillCategory("Architecture", listOf("MVVM", "Clean Architecture", "Modularization", "Design Systems")),
-    SkillCategory("Tooling", listOf("Git", "CI/CD", "SonarQube", "Figma", "AWS")),
+    SkillCategory("AI & GenAI", listOf("LLM integration", "Agentic AI", "AI-native SDLC", "Machine Learning")),
+    SkillCategory("Android", listOf("Kotlin", "Jetpack Compose", "MVVM", "Dagger / Hilt", "Retrofit", "Material Design")),
+    SkillCategory("Cross-platform", listOf("React Native", "OTA delivery", "Native modules")),
+    SkillCategory("Build & Quality", listOf("Gradle", "R8 / ProGuard", "Jenkins", "Azure DevOps", "SonarQube")),
+    SkillCategory("Tools", listOf("Git", "Postman", "Figma", "Zeplin", "AWS")),
 )
 
 data class Certification(val name: String, val issuer: String, val note: String)
 
 val certifications = listOf(
     Certification("AWS Developer Associate", "Amazon Web Services", "Certified"),
+    Certification("Machine Learning Specialization", "Stanford · DeepLearning.AI", "Coursera"),
     Certification("Secure Code Warrior — Yellow Belt", "Secure Code Warrior", "Kotlin"),
-    Certification("Machine Learning", "Coursera (Stanford)", "Certified"),
 )
 
 val awards = listOf(
-    "CAT 2019: 92 percentile, IIM Nagpur offer",
-    "Apache Spark seminar speaker at NIT Hamirpur",
-    "CBSE Physics distinction",
+    "Skoch Award 2026 — Gold, for JioAirSync (custom React Native OTA)",
+    "CAT 2019: 92 percentile, offered a place at IIM Nagpur",
+    "Seminar speaker: Data Streaming with Apache Spark & Big Data Analytics, NIT Hamirpur",
 )
 
 data class Education(val institution: String, val degree: String, val period: String, val score: String)
@@ -116,7 +123,7 @@ val educationList = listOf(
 )
 
 // ---------------------------------------------------------------------------
-// Products — public facts only (Play Store listings). No internal details.
+// Products — public facts only (Play Store listings, résumé). No internal details.
 // ---------------------------------------------------------------------------
 
 data class Product(
@@ -124,85 +131,120 @@ data class Product(
     val name: String,
     val tagline: String,
     val role: String,
+    val myWork: String,      // one line: what I built on it
     val highlights: List<String>,
     val tech: List<String>,
-    val accent: String,      // CSS color
-    val accent2: String,     // CSS color
-    val icon: String,        // font-awesome class used when no image
-    val url: String? = null, // public link
+    val accent: String,
+    val accent2: String,
+    val icon: String,        // font-awesome classes, used when there is no store icon
+    val iconImage: String? = null,
+    val url: String? = null,
+    val installs: String? = null,
+    val rating: String? = null,
+    val badge: String? = null,
     val screenshots: List<String> = emptyList(),
 )
+
+private fun shots(id: String, vararg n: Int) = n.map { "/images/products/$id/$it.webp" }
 
 val products = listOf(
     Product(
         id = "myjio",
         name = "MyJio",
-        tagline = "India's telecom super-app",
+        tagline = "For everything Jio",
         role = "Tech Lead · Android",
+        myWork = "Lead Android across the super-app: native Compose shell, React Native journeys, AI features",
         highlights = listOf(
             "Native Compose shell hosting React Native, WebView and mini-app surfaces",
-            "One deeplink router for every way into the app",
-            "R8 cleanup: 24% → 82% obfuscation",
+            "AI-native SDLC and agentic features across the app",
+            "Jio Design System in Jetpack Compose",
         ),
-        tech = listOf("Compose", "React Native", "Kotlin", "R8"),
-        accent = "#2F6BFF", accent2 = "#7C4DFF",
-        icon = "fa-mobile-screen-button",
+        tech = listOf("Kotlin", "Compose", "React Native", "AI"),
+        accent = "#2f6bff", accent2 = "#7c4dff",
+        icon = "fa-solid fa-mobile-screen-button",
+        iconImage = "/images/products/myjio/icon.webp",
         url = "https://play.google.com/store/apps/details?id=com.jio.myjio",
-        screenshots = listOf("/images/myjio-1.webp", "/images/myjio-2.webp", "/images/myjio-3.webp", "/images/myjio-4.webp", "/images/myjio-5.webp"),
+        installs = "500M+", rating = "4.5",
+        screenshots = shots("myjio", 1, 2, 4, 7, 3, 5, 6),
+    ),
+    Product(
+        id = "agentic",
+        name = "MyJio Agentic",
+        tagline = "An AI assistant that gets things done",
+        role = "Architect",
+        myWork = "Architected an agentic chatbot that automates complex user tasks inside MyJio",
+        highlights = listOf(
+            "Agentic workflows that plan and execute multi-step tasks",
+            "LLM integration inside a 500M+ install app",
+        ),
+        tech = listOf("LLMs", "Agentic AI", "Android"),
+        accent = "#7c4dff", accent2 = "#ff3d7f",
+        icon = "fa-solid fa-wand-magic-sparkles",
     ),
     Product(
         id = "jiofinance",
         name = "JioFinance",
-        tagline = "Payments, banking & investments",
+        tagline = "UPI, banking & investments",
         role = "Android engineering",
+        myWork = "Integrated Jio Financial Services into MyJio and built UPI services",
         highlights = listOf(
-            "Finance journeys inside a hybrid native + RN app",
-            "Secure SDK integration and release hardening",
+            "JFS journeys embedded inside MyJio",
+            "UPI payments: pay, scan, check balance",
         ),
-        tech = listOf("Kotlin", "React Native", "Security"),
-        accent = "#00BFA5", accent2 = "#2F6BFF",
-        icon = "fa-wallet",
+        tech = listOf("Kotlin", "UPI", "React Native"),
+        accent = "#c9a26b", accent2 = "#1b2a8a",
+        icon = "fa-solid fa-wallet",
+        iconImage = "/images/products/jiofinance/icon.webp",
         url = "https://play.google.com/store/apps/details?id=in.jfs.jiofinance",
+        installs = "10M+", rating = "4.5",
+        screenshots = shots("jiofinance", 7, 1, 4, 8, 3, 5),
     ),
     Product(
         id = "jiomart",
         name = "JioMart",
-        tagline = "Groceries to electronics, delivered",
+        tagline = "Groceries to gadgets, delivered",
         role = "Android engineering",
+        myWork = "Built the address experience — add, pick and deliver to the right door",
         highlights = listOf(
-            "Commerce flows at national scale",
-            "Shared components and design-system adoption",
+            "Address capture and selection across checkout",
+            "Delivery to 1200+ cities",
         ),
-        tech = listOf("Kotlin", "Compose", "Commerce"),
-        accent = "#00A0E3", accent2 = "#3DDC84",
-        icon = "fa-cart-shopping",
+        tech = listOf("Kotlin", "Android", "Maps"),
+        accent = "#00a0e3", accent2 = "#e2231a",
+        icon = "fa-solid fa-cart-shopping",
+        iconImage = "/images/products/jiomart/icon.webp",
         url = "https://play.google.com/store/apps/details?id=com.jpl.jiomart",
+        installs = "100M+", rating = "4.1",
+        screenshots = shots("jiomart", 2, 7, 1, 3, 8),
     ),
     Product(
         id = "airsync",
-        name = "AirSync",
+        name = "JioAirSync",
         tagline = "Over-the-air updates for React Native",
         role = "Creator",
+        myWork = "Built a CodePush-style OTA platform for hot-patching React Native at scale",
         highlights = listOf(
             "Delta patches with full-bundle fallback",
             "Apply on next warm start, automatic rollback",
             "Per-flavor channels and a kill switch",
         ),
         tech = listOf("React Native", "Kotlin", "OTA"),
-        accent = "#FF8A3D", accent2 = "#FF3D7F",
-        icon = "fa-cloud-arrow-down",
+        accent = "#ff8a3d", accent2 = "#ff3d7f",
+        icon = "fa-solid fa-cloud-arrow-down",
+        badge = "Skoch Award 2026 · Gold",
     ),
     Product(
         id = "sdks",
         name = "SDKs",
         tagline = "Embeddable modules & design-system wrappers",
         role = "Author & maintainer",
+        myWork = "Reusable SDKs and Compose design-system components shared across apps",
         highlights = listOf(
-            "Reusable SDKs consumed across multiple apps",
-            "Scoped consumer ProGuard rules, versioned releases",
+            "Consumed across multiple Jio apps",
+            "Versioned releases with scoped consumer rules",
         ),
         tech = listOf("Kotlin", "Gradle", "Compose"),
-        accent = "#3DDC84", accent2 = "#00BFA5",
-        icon = "fa-cubes",
+        accent = "#3ddc84", accent2 = "#00bfa5",
+        icon = "fa-solid fa-cubes",
     ),
 )

@@ -77,15 +77,15 @@ fun HomeScreen(clock: Clock) {
             Div({ classes("d") }) { Text(clock.shortDate) }
             Div({ classes("t") }) { Text("Hi, I'm ${Profile.firstName}. Tap around.") }
         }
-        Div({ classes("rr-widget-pill"); style { property("--i", 1) } }) {
-            Div({ classes("ring") })
+        Div({ classes("rr-widget-pill", "award"); style { property("--i", 1) } }) {
+            Div({ classes("medal") }) { I({ classes("fa-solid", "fa-trophy") }) }
             Div {
-                Div({ classes("big") }) { Text("82%") }
-                Text("obfuscated after R8 cleanup")
+                Div({ classes("big") }) { Text("Skoch Gold") }
+                Text("2026 award · JioAirSync")
             }
         }
         Div({ classes("rr-grid") }) {
-            Apps.grid.forEachIndexed { i, app -> AppIcon(app, i + 2) }
+            Apps.grid.forEachIndexed { i, app -> AppIcon(app, i + 2, hint = app === Apps.blog) }
         }
         Dock(index = Apps.grid.size + 2)
     }
@@ -102,8 +102,11 @@ fun PhoneFrame() {
             Div({ classes("rr-screen-on") }) {
                 Div({ classes("rr-wall") })
                 StatusBar(clock.time)
-                HomeScreen(clock)
+                CompositionLocalProvider(LocalAppHost provides AppHost.PHONE) {
+                    HomeScreen(clock)
+                }
                 LockScreen(clock)
+                AppWindowHost(AppHost.PHONE)
                 Div({ classes("rr-gesture") })
             }
             Div({ classes("rr-punch") })
