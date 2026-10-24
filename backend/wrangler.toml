@@ -15,7 +15,7 @@ ALLOWED_ORIGINS = "https://antimkhel.github.io,http://localhost:8080"
 binding = "DB"
 database_name = "iama"
 # Replaced with the real id by setup.sh (`wrangler d1 create iama`).
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "a73636ab-1a27-4ab3-b42d-4c6b7f78b8e4"
 migrations_dir = "migrations"
 
 # Daily cleanup of visitor hashes (only today's and yesterday's are ever kept).

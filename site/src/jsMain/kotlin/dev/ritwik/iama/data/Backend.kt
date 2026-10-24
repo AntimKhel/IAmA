@@ -9,10 +9,10 @@ import kotlinx.browser.window
  */
 object Backend {
     // Filled in after `npx wrangler deploy` (backend/setup.sh prints the URL).
-    private const val PROD_API = ""
+    private const val PROD_API = "https://iama-api.raj-ritwik96.workers.dev"
 
     // Cloudflare Turnstile site key (public). Locally: Cloudflare's always-pass test key.
-    private const val PROD_TURNSTILE_SITE_KEY = ""
+    private const val PROD_TURNSTILE_SITE_KEY = "0x4AAAAAAFkUMaaZ-i9ppFkb"
     private const val TEST_TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
 
     private val isLocal: Boolean
