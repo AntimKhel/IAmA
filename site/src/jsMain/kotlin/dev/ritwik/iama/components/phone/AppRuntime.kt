@@ -88,12 +88,13 @@ fun AppWindowHost(host: AppHost) {
     DisposableEffect(Unit) {
         val onKey: (Event) -> Unit = { if ((it as KeyboardEvent).key == "Escape") PhoneState.close() }
         window.addEventListener("keydown", onKey)
-        val body = document.body
-        val previousOverflow = body?.style?.getPropertyValue("overflow") ?: ""
-        if (host == AppHost.FULL) body?.style?.setProperty("overflow", "hidden")
+        // An open app is modal: the page underneath stops scrolling until it closes.
+        val root = document.documentElement as? HTMLElement
+        val previousOverflow = root?.style?.getPropertyValue("overflow") ?: ""
+        root?.style?.setProperty("overflow", "hidden")
         onDispose {
             window.removeEventListener("keydown", onKey)
-            if (host == AppHost.FULL) body?.style?.setProperty("overflow", previousOverflow)
+            root?.style?.setProperty("overflow", previousOverflow)
         }
     }
 

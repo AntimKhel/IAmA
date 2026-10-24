@@ -5,9 +5,9 @@
      --p     raw scene progress 0..1
      --move  phone travels from the right column to center (eased)
      --copy  hero copy exits (0..1)
-     --zoom  phone scales until its screen fills the viewport (eased)
-     --end   crossfade into the full-screen launcher (0..1)
-     --zmax  scale factor that makes the phone screen cover the viewport
+     --e     the phone screen expands into the full-screen launcher (eased)
+     --clip  clip-path for that expansion (phone screen rect → viewport)
+     --ps / --fit  phone scale at rest (beside the copy) / centered (never larger than the viewport)
      --dx    rest offset of the phone from center (px)
      --mx/--my  smoothed pointer position (-1..1)
    ========================================================================== */
@@ -20,7 +20,19 @@
   --stroke: rgba(255, 255, 255, 0.09);
   --stroke-2: rgba(255, 255, 255, 0.16);
   --text: #e9eef4;
+  --text-2: #aab3bf;
   --muted: #8d97a5;
+  --glass: rgba(12, 15, 21, 0.55);
+  --glass-strong: rgba(14, 18, 25, 0.92);
+  --elev: #0d1117;
+  /* hero name gradient stops */
+  --n0: #ffffff;
+  --n1: #c8ffe0;
+  --n2: var(--g1);
+  --n3: var(--g2);
+  --n4: var(--g4);
+  --n5: var(--g3);
+  --n6: #b9a4ff;
   --g1: #3ddc84;
   --g2: #00bfa5;
   --g3: #7c4dff;
@@ -51,6 +63,7 @@
 
 html {
   background: var(--bg);
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -258,9 +271,9 @@ html.rr-booting {
   --p: 0;
   --move: 0;
   --copy: 0;
-  --zoom: 0;
-  --end: 0;
-  --zmax: 5;
+  --e: 0;
+  --fit: 1;
+  --clip: inset(0);
   --dx: 22vw;
   --ps: 1;
   --mx: 0;
@@ -287,8 +300,8 @@ html.rr-booting {
   inset: -20%;
   z-index: -3;
   filter: blur(70px) saturate(1.2) hue-rotate(calc(var(--p) * 50deg));
-  opacity: calc(0.85 - var(--end) * 0.35);
-  transform: scale(calc(1 + var(--zoom) * 0.4));
+  opacity: calc(0.85 - var(--e) * 0.35);
+  transform: scale(calc(1 + var(--move) * 0.15 + var(--e) * 0.25));
 }
 
 .rr-blob {
@@ -364,7 +377,7 @@ html.rr-booting {
   -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent 75%);
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent 75%);
   animation: floor-run 3.5s linear infinite;
-  opacity: calc(0.55 * (1 - var(--zoom)));
+  opacity: calc(0.55 * (1 - var(--move) * 0.5 - var(--e)));
 }
 
 @keyframes floor-run {
@@ -377,7 +390,7 @@ html.rr-booting {
   z-index: -1;
   width: 100%;
   height: 100%;
-  opacity: calc(1 - var(--end));
+  opacity: calc(1 - var(--e));
 }
 
 .rr-vignette {
@@ -404,7 +417,7 @@ html.rr-booting {
   pointer-events: auto;
 }
 
-.rr-scene.is-zooming .rr-copy {
+.rr-scene.is-moving .rr-copy {
   pointer-events: none;
 }
 
@@ -469,13 +482,13 @@ html.rr-booting {
   --oy: 0px;
   background-image: radial-gradient(
     520px circle at calc(var(--cx) - var(--ox)) calc(var(--cy) - var(--oy)),
-    #ffffff 0%,
-    #c8ffe0 12%,
-    var(--g1) 26%,
-    var(--g2) 42%,
-    var(--g4) 60%,
-    var(--g3) 78%,
-    #b9a4ff 100%
+    var(--n0) 0%,
+    var(--n1) 12%,
+    var(--n2) 26%,
+    var(--n3) 42%,
+    var(--n4) 60%,
+    var(--n5) 78%,
+    var(--n6) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -535,16 +548,17 @@ html.rr-booting {
   opacity: 1;
 }
 
+/* Each role fades out (25–29%) while the next fades in (its own 0–4%): a true crossfade, never blank. */
 @keyframes role-cycle {
   0% { opacity: 0; transform: translateY(0.45em); filter: blur(8px); }
-  4%, 21% { opacity: 1; transform: none; filter: none; }
-  25%, 100% { opacity: 0; transform: translateY(-0.45em); filter: blur(8px); }
+  4%, 25% { opacity: 1; transform: none; filter: none; }
+  29%, 100% { opacity: 0; transform: translateY(-0.45em); filter: blur(8px); }
 }
 
 .rr-summary {
   margin-top: 18px;
   max-width: 34em;
-  color: #aab3bf;
+  color: var(--text-2);
   font-size: clamp(0.98rem, 1.1vw, 1.08rem);
   line-height: 1.7;
 }
@@ -571,7 +585,7 @@ html.rr-booting {
   text-decoration: none;
   cursor: pointer;
   border: 1px solid var(--stroke-2);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface);
   backdrop-filter: blur(12px);
   transform: translate3d(var(--bx), var(--by), 0);
   transition: transform 0.35s var(--ease-spring), background 0.25s, border-color 0.25s, box-shadow 0.3s;
@@ -581,8 +595,8 @@ html.rr-booting {
 }
 
 .rr-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: var(--surface-2);
+  border-color: var(--stroke-2);
 }
 
 .rr-btn i {
@@ -656,10 +670,10 @@ html.rr-booting {
 
 .rr-phone-zoom {
   transform:
-    translate3d(calc(var(--dx) * (1 - var(--move))), calc(var(--move) * 1vh), 0)
-    scale(calc(var(--ps) * (1 + (var(--zmax) - 1) * var(--zoom))));
+    translate3d(calc(var(--dx) * (1 - var(--move))), 0, 0)
+    scale(calc(var(--ps) + (var(--fit) - var(--ps)) * var(--move) + var(--fit) * var(--e) * 0.04));
   transform-style: preserve-3d;
-  will-change: transform;
+  /* No will-change: letting the browser re-rasterize at the current scale keeps the screen crisp. */
 }
 
 .rr-phone-tilt {
@@ -708,8 +722,8 @@ html.rr-booting {
     0 0 0 3px #0d0f13,
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     0 60px 120px -30px rgba(0, 0, 0, 0.9),
-    0 30px 80px -20px rgba(61, 220, 132, calc(0.35 * (1 - var(--zoom)))),
-    0 0 140px -20px rgba(124, 77, 255, calc(0.45 * (1 - var(--zoom))));
+    0 30px 80px -20px rgba(61, 220, 132, calc(0.35 * (1 - var(--e)))),
+    0 0 140px -20px rgba(124, 77, 255, calc(0.45 * (1 - var(--e))));
   pointer-events: auto;
 }
 
@@ -721,7 +735,7 @@ html.rr-booting {
   border-radius: inherit;
   pointer-events: none;
   background: linear-gradient(115deg, rgba(255, 255, 255, 0.18) 0%, transparent 22%, transparent 70%, rgba(255, 255, 255, 0.06) 100%);
-  opacity: calc(1 - var(--zoom));
+  opacity: calc(1 - var(--e));
 }
 
 .rr-btn-side {
@@ -743,7 +757,6 @@ html.rr-booting {
   overflow: hidden;
   background: #000;
   isolation: isolate;
-  transform: translateZ(0);
 }
 
 .rr-ready .rr-screen-on {
@@ -787,7 +800,7 @@ html.rr-booting {
     transparent 40%
   );
   mix-blend-mode: screen;
-  opacity: calc(1 - var(--zoom));
+  opacity: calc(1 - var(--move) * 0.6 - var(--e));
 }
 
 /* ---- wallpaper (Material You) ---- */
@@ -1149,11 +1162,11 @@ html.rr-booting {
   top: calc(50% + var(--fy));
   transform:
     translate3d(
-      calc(-50% + var(--mx) * var(--depth) * 18px + var(--wx) * var(--zoom) * 70vw),
-      calc(-50% + var(--my) * var(--depth) * 18px + var(--wy) * var(--zoom) * 70vh),
+      calc(-50% + var(--mx) * var(--depth) * 18px + var(--wx) * var(--move) * 45vw),
+      calc(-50% + var(--my) * var(--depth) * 18px + var(--wy) * var(--move) * 45vh),
       0
     );
-  opacity: calc(1 - var(--zoom) * 1.6 - var(--move) * 0.4);
+  opacity: calc(1 - var(--move) * 1.5);
 }
 
 .rr-floater-inner {
@@ -1162,7 +1175,7 @@ html.rr-booting {
   gap: 12px;
   padding: 12px 16px;
   border-radius: 20px;
-  background: rgba(16, 20, 28, 0.6);
+  background: var(--glass);
   border: 1px solid var(--stroke-2);
   backdrop-filter: blur(16px);
   box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.8);
@@ -1188,7 +1201,7 @@ html.rr-booting {
 .rr-floater .v {
   font: 700 20px var(--font-display);
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--text);
 }
 
 .rr-floater .l {
@@ -1232,7 +1245,7 @@ html.rr-booting {
   width: 22px;
   height: 34px;
   border-radius: 12px;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border: 1.5px solid var(--stroke-2);
   position: relative;
 }
 
@@ -1263,9 +1276,9 @@ html.rr-booting {
   position: absolute;
   inset: 0;
   z-index: 6;
-  opacity: var(--end);
-  transform: scale(calc(1.18 - 0.18 * var(--end)));
-  filter: blur(calc((1 - var(--end)) * 14px));
+  /* Grows out of the phone's screen rect (see --clip); hidden until the expansion starts. */
+  clip-path: var(--clip);
+  visibility: hidden;
   pointer-events: none;
   color: #fff;
   display: flex;
@@ -1273,8 +1286,22 @@ html.rr-booting {
   padding: 110px max(5vw, calc(50% - 600px)) 40px;
 }
 
+.rr-scene.is-expanding .rr-desk {
+  visibility: visible;
+}
+
+.rr-desk > :not(.rr-wall) {
+  opacity: calc(var(--e) * 1.6 - 0.4);
+  transform: scale(calc(0.9 + 0.1 * var(--e)));
+}
+
 .rr-scene.is-entered .rr-desk {
   pointer-events: auto;
+}
+
+/* While the screen expands, the phone underneath must not catch clicks. */
+.rr-scene.is-expanding .rr-phone {
+  pointer-events: none;
 }
 
 .rr-desk .rr-wall {
@@ -1283,10 +1310,10 @@ html.rr-booting {
 
 .rr-desk-top {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 24px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 22px;
 }
 
 .rr-desk-hello .d {
@@ -1312,6 +1339,7 @@ html.rr-booting {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .rr-desk-widgets .rr-widget-pill {
@@ -1412,7 +1440,7 @@ html.rr-booting {
   gap: 4px;
   padding: 6px 6px 6px 8px;
   border-radius: 999px;
-  background: rgba(12, 15, 21, 0.55);
+  background: var(--glass);
   border: 1px solid var(--stroke);
   backdrop-filter: blur(18px) saturate(1.4);
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
@@ -1457,7 +1485,7 @@ html.rr-booting {
   position: absolute;
   inset: 2.5px;
   border-radius: 50%;
-  background: #0d1117;
+  background: var(--elev);
 }
 
 .rr-logo span {
@@ -1481,7 +1509,7 @@ html.rr-booting {
   padding: 9px 14px;
   border-radius: 999px;
   font: 500 14px var(--font-body);
-  color: #c3cad4;
+  color: var(--text-2);
   text-decoration: none;
   cursor: pointer;
   background: none;
@@ -1490,8 +1518,8 @@ html.rr-booting {
 }
 
 .rr-nav-link:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  background: var(--surface-2);
 }
 
 .rr-hire {
@@ -1521,7 +1549,7 @@ html.rr-booting {
   border-radius: 50%;
   border: none;
   background: none;
-  color: #c3cad4;
+  color: var(--text-2);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -1531,8 +1559,8 @@ html.rr-booting {
 }
 
 .rr-nav-icon:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 /* ==========================================================================
@@ -1574,7 +1602,7 @@ html.rr-booting {
   background:
     radial-gradient(120% 80% at 0% 0%, rgba(124, 77, 255, 0.25), transparent 50%),
     radial-gradient(120% 80% at 100% 100%, rgba(61, 220, 132, 0.2), transparent 50%),
-    rgba(14, 18, 25, 0.92);
+    var(--glass-strong);
   border: 1px solid var(--stroke-2);
   box-shadow: 0 40px 120px -20px rgba(0, 0, 0, 0.9);
   color: var(--text);
@@ -1641,7 +1669,7 @@ html.rr-booting {
   gap: 14px;
   padding: 14px 16px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--surface);
   border: 1px solid var(--stroke);
   color: var(--text);
   text-decoration: none;
@@ -1649,7 +1677,7 @@ html.rr-booting {
 }
 
 .rr-row:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-2);
   border-color: var(--stroke-2);
   transform: translateX(4px);
 }
@@ -1692,7 +1720,7 @@ html.rr-booting {
   padding: 0 12px;
   border-radius: 10px;
   border: 1px solid var(--stroke-2);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface);
   color: var(--text);
   font: 600 12px var(--font-body);
   cursor: pointer;
@@ -1704,7 +1732,7 @@ html.rr-booting {
 }
 
 .rr-mini:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--surface-2);
 }
 
 .rr-mini.ok {
@@ -1736,7 +1764,7 @@ html.rr-booting {
   transform: translateX(-50%);
   padding: 12px 18px;
   border-radius: 14px;
-  background: rgba(20, 26, 35, 0.95);
+  background: var(--glass-strong);
   border: 1px solid var(--stroke-2);
   color: var(--text);
   font: 500 14px var(--font-body);
@@ -2893,4 +2921,217 @@ html.rr-tapped .rr-app .ico::before {
 
 @media (prefers-reduced-motion: reduce) {
   .rr-appwin-splash { display: none; }
+}
+
+/* ==========================================================================
+   Focus mode — an app is open inside the hero phone: the phone glides to the
+   center at its fit scale, the copy slides out; closing reverses it.
+   ========================================================================== */
+
+.rr-scene.is-focus-anim .rr-phone-zoom,
+.rr-scene.is-focus-anim .rr-phone-tilt,
+.rr-scene.is-focus-anim .rr-copy,
+.rr-scene.is-focus-anim .rr-floater,
+.rr-scene.is-focus-anim .rr-callout {
+  transition: transform 0.75s var(--ease-emph), opacity 0.5s ease, filter 0.5s ease;
+}
+
+/* Flat 2D transforms in focus mode so the browser rasterizes the screen at its final, larger scale. */
+.rr-scene.is-focus .rr-phone-zoom {
+  transform: translate(0, 8px) scale(var(--fit)) !important;
+}
+
+.rr-scene.is-focus:not(.is-focus-anim) .rr-phone-zoom,
+.rr-scene.is-focus:not(.is-focus-anim) .rr-phone-tilt,
+.rr-scene.is-focus:not(.is-focus-anim) .rr-phone-arrive {
+  transform-style: flat;
+}
+
+.rr-scene.is-focus .rr-phone-tilt {
+  transform: none !important;
+}
+
+.rr-scene.is-focus .rr-copy {
+  transform: translate3d(-70vw, -50%, 0) !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.rr-scene.is-focus .rr-floater,
+.rr-scene.is-focus .rr-callout,
+.rr-scene.is-focus .rr-hint {
+  opacity: 0 !important;
+}
+
+.rr-focus-bar {
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  bottom: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  transform: translate(-50%, 30px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.5s var(--ease-emph), opacity 0.3s;
+}
+
+.rr-scene.is-focus .rr-focus-bar {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0.35s;
+}
+
+.rr-focus-bar button {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke-2);
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  color: var(--text);
+  font: 600 13px var(--font-body);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.rr-focus-bar button:hover {
+  background: var(--glass-strong);
+}
+
+.rr-focus-bar kbd {
+  font: 500 11px var(--font-mono);
+  color: var(--muted);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--stroke-2);
+}
+
+/* ==========================================================================
+   Light mode (Silk puts silk-light / silk-dark on <html>). Device surfaces —
+   the phone, its apps, the full-screen launcher and the boot screen — stay dark,
+   like a real phone in dark mode; the page around them flips.
+   ========================================================================== */
+
+.rr-phone,
+.rr-appwin,
+.rr-desk,
+.rr-mhome,
+.rr-boot {
+  --text: #e9eef4;
+  --text-2: #aab3bf;
+  --muted: #8d97a5;
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-2: rgba(255, 255, 255, 0.08);
+  --stroke: rgba(255, 255, 255, 0.09);
+  --stroke-2: rgba(255, 255, 255, 0.16);
+  --glass: rgba(12, 15, 21, 0.55);
+  --glass-strong: rgba(14, 18, 25, 0.92);
+  --elev: #0d1117;
+}
+
+html.silk-light {
+  --bg: #f4f6fb;
+  --bg-2: #eaeef6;
+  --surface: rgba(16, 24, 40, 0.04);
+  --surface-2: rgba(16, 24, 40, 0.08);
+  --stroke: rgba(16, 24, 40, 0.1);
+  --stroke-2: rgba(16, 24, 40, 0.18);
+  --text: #0f141c;
+  --text-2: #3d4655;
+  --muted: #5f6877;
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-strong: rgba(255, 255, 255, 0.95);
+  --elev: #ffffff;
+  --n0: #04261a;
+  --n1: #0a6a3c;
+  --n2: #0d9c5c;
+  --n3: #00876f;
+  --n4: #2253d4;
+  --n5: #6236e8;
+  --n6: #3f22a8;
+}
+
+html.silk-light .rr-blob {
+  mix-blend-mode: multiply;
+  opacity: 0.28;
+}
+
+html.silk-light .rr-mesh {
+  filter: blur(80px) saturate(1.1) hue-rotate(calc(var(--p) * 50deg));
+}
+
+html.silk-light .rr-grain {
+  opacity: 0.045;
+}
+
+html.silk-light .rr-floor {
+  background-image:
+    linear-gradient(rgba(13, 156, 92, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(98, 54, 232, 0.2) 1px, transparent 1px);
+}
+
+html.silk-light .rr-vignette {
+  background: radial-gradient(ellipse at 50% 40%, transparent 45%, rgba(214, 222, 238, 0.7) 100%);
+}
+
+html.silk-light .rr-chip {
+  color: #0a6a3c;
+  background: rgba(13, 156, 92, 0.08);
+  border-color: rgba(13, 156, 92, 0.3);
+}
+
+html.silk-light .rr-rotator > span {
+  background-image: linear-gradient(100deg, #04261a, #0d9c5c 45%, #00876f 70%, #2253d4);
+}
+
+html.silk-light .rr-meta i {
+  color: #0d9c5c;
+}
+
+html.silk-light .rr-btn.primary {
+  box-shadow: 0 10px 30px -12px rgba(13, 156, 92, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+html.silk-light .rr-nav {
+  box-shadow: 0 10px 30px -14px rgba(20, 30, 60, 0.25);
+}
+
+html.silk-light .rr-nav.is-scrolled {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+html.silk-light .rr-floater-inner {
+  box-shadow: 0 20px 40px -20px rgba(20, 30, 60, 0.35);
+}
+
+html.silk-light .rr-callout-inner {
+  box-shadow: 0 18px 40px -14px rgba(20, 30, 60, 0.45), 0 0 0 1px rgba(16, 24, 40, 0.08);
+}
+
+html.silk-light .rr-phone {
+  box-shadow:
+    0 0 0 1.5px #4b525d,
+    0 0 0 3px #0d0f13,
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 60px 100px -40px rgba(20, 30, 60, 0.55),
+    0 30px 80px -30px rgba(13, 156, 92, calc(0.35 * (1 - var(--e)))),
+    0 0 120px -30px rgba(98, 54, 232, calc(0.35 * (1 - var(--e))));
+}
+
+html.silk-light .rr-sheet-scrim {
+  background: rgba(220, 226, 238, 0.55);
+}
+
+html.silk-light .rr-sheet {
+  box-shadow: 0 40px 100px -30px rgba(20, 30, 60, 0.45);
+}
+
+html.silk-light ::selection {
+  background: rgba(13, 156, 92, 0.25);
+  color: #04261a;
 }

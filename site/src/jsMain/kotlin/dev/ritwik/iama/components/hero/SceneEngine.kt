@@ -42,8 +42,12 @@ class SceneEngine(private val scene: HTMLElement) {
     private var py = -9999.0
     private var lastPointerAt = -1e9
 
-    private var zmax = 5.0
     private var phoneScale = 1.0
+    private var fit = 1.0
+    private var screenW = 278.0
+    private var screenH = 608.0
+    private var vw = 1.0
+    private var vh = 1.0
 
     private val passive: dynamic = js("({passive: true})")
 
@@ -91,17 +95,21 @@ class SceneEngine(private val scene: HTMLElement) {
     private fun measure() {
         val w = window.innerWidth.toDouble()
         val h = window.innerHeight.toDouble()
+        vw = w
+        vh = h
         val pw = (phone?.offsetWidth ?: 300).toDouble()
         val ph = (phone?.offsetHeight ?: 630).toDouble()
-        // Leave room for the nav and breathing space on short screens.
+        // Rest scale (beside the copy) and centered "fit" scale: the phone is never larger than the viewport.
         phoneScale = min(1.0, (h - 130) / ph).coerceAtLeast(0.55)
-        // Scale at which the *screen* (inset 11px) covers the viewport, relative to the rest scale.
-        val cover = max(w / (pw - 22), h / (ph - 22)) * 1.12
-        zmax = cover / phoneScale
+        // Leave room for the nav above and the focus bar below.
+        fit = min((h - 140) / ph, (w * 0.9) / pw).coerceIn(0.6, 1.3)
+        screenW = (pw - 22) * fit
+        screenH = (ph - 22) * fit
         val dx = if (w >= 1280) w * 0.22 else w * 0.245
         write("--ps", phoneScale.css())
-        write("--zmax", zmax.css())
+        write("--fit", fit.css())
         write("--dx", "${dx.css()}px")
+        written.remove("--clip")
         particles?.resize()
         measureGlyphs()
     }
@@ -125,18 +133,25 @@ class SceneEngine(private val scene: HTMLElement) {
             val travel = rect.height - vh
             val p = if (travel > 1) clamp01(-rect.top / travel) else 0.0
 
-            val move = easeInOut(clamp01(p / 0.3))
+            // Act 1 (0–0.3): copy exits, phone glides to center and grows to fit the viewport.
+            // Hold (0.3–0.5): the phone sits centered, fully visible and usable.
+            // Act 2 (0.5–0.8): its screen expands into the full-screen launcher.
             val copy = clamp01(p / 0.22)
-            val zoom = easeInCubic(clamp01((p - 0.2) / 0.62))
-            val end = easeOut(clamp01((p - 0.76) / 0.16))
+            val move = easeInOut(clamp01(p / 0.3))
+            val e = easeInOut(clamp01((p - 0.5) / 0.3))
 
             write("--p", p.css())
             write("--move", move.css())
             write("--copy", copy.css())
-            write("--zoom", zoom.css())
-            write("--end", end.css())
-            toggle("is-zooming", zoom > 0.02)
-            toggle("is-entered", end > 0.6)
+            write("--e", e.css())
+            val k = 1 - e
+            write(
+                "--clip",
+                "inset(${((vh - screenH) / 2 * k).css()}px ${((vw - screenW) / 2 * k).css()}px round ${(42 * fit * k).css()}px)",
+            )
+            toggle("is-moving", copy > 0.5)
+            toggle("is-expanding", e > 0.02)
+            toggle("is-entered", e > 0.9)
 
             // Pointer smoothing; idle pointer lets the name gradient drift on its own.
             mx += (tx - mx) * 0.07
@@ -153,7 +168,7 @@ class SceneEngine(private val scene: HTMLElement) {
                 }
             }
 
-            if (!reduced && document.asDynamic().hidden != true && end < 0.98) {
+            if (!reduced && document.asDynamic().hidden != true && e < 0.98) {
                 particles?.step(px, py)
             }
         }
@@ -173,8 +188,6 @@ class SceneEngine(private val scene: HTMLElement) {
     }
 
     private fun easeInOut(t: Double) = if (t < 0.5) 4 * t * t * t else 1 - (-2 * t + 2).pow(3) / 2
-    private fun easeInCubic(t: Double) = t * t * t
-    private fun easeOut(t: Double) = 1 - (1 - t).pow(3)
 }
 
 /** A cursor-reactive constellation drawn on a canvas. Cheap: ~100 points, O(n²) links. */

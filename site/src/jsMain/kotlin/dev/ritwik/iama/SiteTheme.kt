@@ -55,8 +55,8 @@ fun ColorMode.toSitePalette(): SitePalette {
 
 @InitSilk
 fun initTheme(ctx: InitSilkContext) {
-    ctx.theme.palettes.light.background = Color.rgb(0xF5F7F5)
-    ctx.theme.palettes.light.color = Color.rgb(0x1F2328)
+    ctx.theme.palettes.light.background = Color.rgb(0xF4F6FB)
+    ctx.theme.palettes.light.color = Color.rgb(0x0F141C)
     ctx.theme.palettes.dark.background = Color.rgb(0x07090D)
     ctx.theme.palettes.dark.color = Color.rgb(0xE9EEF4)
 }

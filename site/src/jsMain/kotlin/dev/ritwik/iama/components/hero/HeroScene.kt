@@ -3,10 +3,12 @@ package dev.ritwik.iama.components.hero
 import androidx.compose.runtime.*
 import com.varabyte.kobweb.core.AppGlobals
 import com.varabyte.kobweb.core.isExporting
+import dev.ritwik.iama.components.phone.AppHost
 import dev.ritwik.iama.components.phone.AppIcon
 import dev.ritwik.iama.components.phone.Apps
 import dev.ritwik.iama.components.phone.Dock
 import dev.ritwik.iama.components.phone.PhoneFrame
+import dev.ritwik.iama.components.phone.PhoneState
 import dev.ritwik.iama.components.phone.rememberClock
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.data.floaterStats
@@ -14,6 +16,7 @@ import dev.ritwik.iama.data.heroStats
 import dev.ritwik.iama.util.HtmlState
 import dev.ritwik.iama.util.UiState
 import dev.ritwik.iama.util.resumeHref
+import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.web.attributes.ATarget
@@ -42,6 +45,7 @@ fun HeroScene() {
     }
 
     if (booting) BootOverlay(onFinished = { booting = false })
+    PhoneFocusEffect()
 
     Section({
         id("top")
@@ -74,6 +78,7 @@ fun HeroScene() {
             TapCallout()
             Desk()
             ScrollHint()
+            FocusBar()
         }
     }
 }
@@ -318,6 +323,35 @@ private fun Floaters() {
                 }
             }
         }
+    }
+}
+
+/**
+ * When an app opens inside the hero phone, the scene enters focus mode (phone centered at its fit
+ * scale, copy slid out — see rr.css). The transition class is only present while animating, so
+ * normal scroll-driven movement never lags behind the scroll position.
+ */
+@Composable
+private fun PhoneFocusEffect() {
+    val focused = PhoneState.app != null && PhoneState.host == AppHost.PHONE && !PhoneState.closing
+    LaunchedEffect(focused) {
+        val scene = document.getElementById("top") ?: return@LaunchedEffect
+        if (focused == scene.classList.contains("is-focus")) return@LaunchedEffect
+        scene.classList.add("is-focus-anim")
+        scene.classList.toggle("is-focus", focused)
+        delay(800)
+        scene.classList.remove("is-focus-anim")
+    }
+}
+
+@Composable
+private fun FocusBar() {
+    Div({ classes("rr-focus-bar") }) {
+        Button({ onClick { PhoneState.close() } }) {
+            I({ classes("fa-solid", "fa-house") })
+            Text("Home")
+        }
+        TagElement<org.w3c.dom.HTMLElement>("kbd", {}) { Text("Esc") }
     }
 }
 
