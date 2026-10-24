@@ -17,7 +17,9 @@ import kotlinx.browser.document
 import org.jetbrains.compose.web.css.cssRem
 import org.jetbrains.compose.web.css.fr
 import org.jetbrains.compose.web.css.vh
+import org.jetbrains.compose.web.dom.A
 import org.jetbrains.compose.web.dom.Div
+import org.jetbrains.compose.web.dom.Text
 import dev.ritwik.iama.components.sections.Footer
 import dev.ritwik.iama.components.sections.NavHeader
 import dev.ritwik.iama.components.phone.AppHost
@@ -42,12 +44,13 @@ fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
     }
 
     Column(Modifier.fillMaxWidth().minHeight(100.vh)) {
+        A("#content", { classes("skip-link") }) { Text("Skip to content") }
         NavHeader()
         Column(
             Modifier.fillMaxWidth().flexGrow(1),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Div(PageContentStyle.toAttrs()) {
+            Div(PageContentStyle.toAttrs { id("content"); attr("tabindex", "-1") }) {
                 content()
             }
         }

@@ -66,7 +66,8 @@ fun HeroScene() {
 
             HeroCopy()
 
-            Div({ classes("rr-stage"); attr("aria-hidden", "true") }) {
+            // Not aria-hidden: the phone's app icons are real, focusable controls.
+            Div({ classes("rr-stage"); attr("aria-label", "Interactive phone with portfolio apps") }) {
                 Div({ classes("rr-phone-zoom") }) {
                     Div({ classes("rr-phone-tilt") }) {
                         Div({ classes("rr-phone-arrive") }) { PhoneFrame() }

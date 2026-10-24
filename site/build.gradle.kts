@@ -20,6 +20,8 @@ version = "1.0-SNAPSHOT"
 kobweb {
     app {
         index {
+            // R monogram (same mark as the boot animation); favicon.ico / apple-touch-icon added below.
+            faviconPath.set("/favicon.svg")
             description.set("Ritwik Raj Srivastava — Software Engineer & Tech Lead, Android & AI. 7+ years shipping MyJio, JioFinance and JioMart; agentic AI, AI-native SDLC, Compose and React Native.")
 
             head.add {
@@ -29,28 +31,38 @@ kobweb {
                 val title = "Ritwik Raj Srivastava — Tech Lead, Android & AI"
                 val summary = "7+ years shipping Android to hundreds of millions. Agentic AI, AI-native SDLC, Compose design systems and award-winning React Native OTA."
 
-                // Decide *before* JS loads whether this visit plays the boot animation, so the
-                // exported static snapshot never flashes ahead of it (see rr.css: html.rr-booting).
+                // Runs before first paint: picks the color mode, and decides whether this visit plays the
+                // boot animation so the exported snapshot never flashes ahead of it (rr.css: html.rr-booting).
+                // Block comments only in here, to be safe if the script ever gets minified onto one line.
                 script {
                     unsafe {
                         raw(
                             """
-                            //<![CDATA[
+                            /*<![CDATA[*/
                             (function () {
                               try {
                                 var l = location;
                                 if (l.search.indexOf('_kobwebIsExporting') >= 0) return;
+                                /* Color mode before first paint: the snapshot hard-codes silk-light. */
+                                var saved = localStorage.getItem('iama:colorMode');
+                                var dark = saved ? saved === 'DARK' : matchMedia('(prefers-color-scheme: dark)').matches;
+                                var cl = document.documentElement.classList;
+                                cl.remove('silk-light', 'silk-dark');
+                                cl.add(dark ? 'silk-dark' : 'silk-light');
                                 var home = l.pathname.replace(/\/+$/, '') === '$base';
                                 var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
                                 if (!home || reduce || sessionStorage.getItem('rr-booted')) return;
                                 document.documentElement.classList.add('rr-booting');
                               } catch (e) {}
                             })();
-                            //]]>
+                            /*]]>*/
                             """.trimIndent()
                         )
                     }
                 }
+
+                link(rel = "icon", href = "$base/favicon.ico") { attributes["sizes"] = "32x32" }
+                link(rel = "apple-touch-icon", href = "$base/apple-touch-icon.png")
 
                 link(rel = "preconnect", href = "https://fonts.googleapis.com")
                 link(rel = "preconnect", href = "https://fonts.gstatic.com") { attributes["crossorigin"] = "" }
@@ -72,7 +84,8 @@ kobweb {
                 meta { attributes["property"] = "og:title"; content = title }
                 meta { attributes["property"] = "og:description"; content = summary }
                 meta { attributes["property"] = "og:url"; content = siteUrl }
-                meta(name = "twitter:card", content = "summary_large_image")
+                meta { attributes["property"] = "og:image"; content = "${siteUrl}icon-512.png" }
+                meta(name = "twitter:card", content = "summary")
                 meta(name = "twitter:title", content = title)
                 meta(name = "twitter:description", content = summary)
             }
