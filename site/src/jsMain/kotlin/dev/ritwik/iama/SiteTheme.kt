@@ -34,14 +34,14 @@ object SitePalettes {
         codeBg = Color.rgb(0xF6F8FA),
     )
     val dark = SitePalette(
-        nearBackground = Color.rgb(0x161B22),
+        nearBackground = Color.rgb(0x0E131B),
         brand = SitePalette.Brand(
             primary = Color.rgb(0x3DDC84),
             primaryVariant = Color.rgb(0x2ECC71),
             accent = Color.rgb(0x58A6FF),
         ),
         textSecondary = Color.rgb(0x8B949E),
-        border = Color.rgb(0x30363D),
+        border = Color.rgb(0x1E2632),
         codeBg = Color.rgb(0x1C2128),
     )
 }
@@ -57,6 +57,6 @@ fun ColorMode.toSitePalette(): SitePalette {
 fun initTheme(ctx: InitSilkContext) {
     ctx.theme.palettes.light.background = Color.rgb(0xF5F7F5)
     ctx.theme.palettes.light.color = Color.rgb(0x1F2328)
-    ctx.theme.palettes.dark.background = Color.rgb(0x0D1117)
-    ctx.theme.palettes.dark.color = Color.rgb(0xE6EDF3)
+    ctx.theme.palettes.dark.background = Color.rgb(0x07090D)
+    ctx.theme.palettes.dark.color = Color.rgb(0xE9EEF4)
 }

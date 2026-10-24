@@ -11,6 +11,7 @@ import com.varabyte.kobweb.core.init.InitRouteContext
 import com.varabyte.kobweb.core.layout.Layout
 import com.varabyte.kobweb.silk.style.toModifier
 import dev.ritwik.iama.AltSectionWrapperStyle
+import dev.ritwik.iama.components.hero.HeroScene
 import dev.ritwik.iama.components.layouts.PageLayoutData
 import dev.ritwik.iama.components.sections.*
 
@@ -23,7 +24,8 @@ fun initHomePage(ctx: InitRouteContext) {
 @Layout(".components.layouts.PageLayout")
 @Composable
 fun HomePage() {
-    HeroSection()
+    HeroScene()
+    // Sections below are redesigned (with Style Lab variants) in phase 3.
     Box(AltSectionWrapperStyle.toModifier().fillMaxWidth()) {
         ShowcaseSection()
     }

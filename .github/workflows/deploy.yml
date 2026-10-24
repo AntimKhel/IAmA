@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  KOBWEB_CLI_VERSION: 0.9.21
+  KOBWEB_CLI_VERSION: 0.9.23
 
 jobs:
   export:

@@ -20,6 +20,8 @@ import org.jetbrains.compose.web.css.vh
 import org.jetbrains.compose.web.dom.Div
 import dev.ritwik.iama.components.sections.Footer
 import dev.ritwik.iama.components.sections.NavHeader
+import dev.ritwik.iama.components.recruiter.ContactSheet
+import dev.ritwik.iama.components.recruiter.Toast
 
 val PageContentStyle = CssStyle {
     base { Modifier.fillMaxSize().padding(leftRight = 0.cssRem, top = 0.cssRem) }
@@ -48,4 +50,6 @@ fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
         }
         Footer(Modifier.fillMaxWidth())
     }
+    ContactSheet()
+    Toast()
 }

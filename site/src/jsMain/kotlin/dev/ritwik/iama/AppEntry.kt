@@ -14,10 +14,9 @@ import com.varabyte.kobweb.silk.style.toModifier
 import com.varabyte.kobweb.silk.theme.colors.ColorMode
 import com.varabyte.kobweb.silk.theme.colors.loadFromLocalStorage
 import com.varabyte.kobweb.silk.theme.colors.saveToLocalStorage
-import kotlinx.browser.document
 import org.jetbrains.compose.web.css.vh
-import org.w3c.dom.HTMLLinkElement
-import org.w3c.dom.HTMLStyleElement
+
+// Fonts, meta tags and the motion stylesheet are added to <head> at build time (see site/build.gradle.kts).
 
 private const val COLOR_MODE_KEY = "iama:colorMode"
 
@@ -35,109 +34,8 @@ fun AppEntry(content: @Composable () -> Unit) {
             colorMode.saveToLocalStorage(COLOR_MODE_KEY)
         }
 
-        LaunchedEffect(Unit) {
-            loadGoogleFonts()
-            injectBlobAnimations()
-        }
-
         Surface(SmoothColorStyle.toModifier().minHeight(100.vh)) {
             content()
         }
     }
-}
-
-private fun loadGoogleFonts() {
-    val head = document.head ?: return
-
-    val preconnect = (document.createElement("link") as HTMLLinkElement).apply {
-        rel = "preconnect"
-        href = "https://fonts.googleapis.com"
-    }
-    head.appendChild(preconnect)
-
-    val fontLink = (document.createElement("link") as HTMLLinkElement).apply {
-        rel = "stylesheet"
-        href = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-    }
-    head.appendChild(fontLink)
-
-    // SEO meta tags
-    fun addMeta(name: String, content: String) {
-        val meta = document.createElement("meta")
-        meta.setAttribute("name", name)
-        meta.setAttribute("content", content)
-        head.appendChild(meta)
-    }
-    fun addOgMeta(prop: String, content: String) {
-        val meta = document.createElement("meta")
-        meta.setAttribute("property", prop)
-        meta.setAttribute("content", content)
-        head.appendChild(meta)
-    }
-
-    addMeta("author", "Ritwik Raj Srivastava")
-    addMeta("keywords", "Android Developer, Kotlin, Jetpack Compose, Tech Lead, Jio, Software Engineer, MyJio, Design System")
-    addMeta("robots", "index, follow")
-    addOgMeta("og:title", "Ritwik Raj Srivastava - Software Engineer & Tech Lead")
-    addOgMeta("og:description", "6+ years building Android apps at scale. Tech Lead at Jio, MyJio app.")
-    addOgMeta("og:type", "website")
-    addOgMeta("og:url", "https://antimkhel.github.io/IAmA/")
-    addMeta("twitter:card", "summary")
-    addMeta("twitter:title", "Ritwik Raj Srivastava - Software Engineer & Tech Lead")
-    addMeta("twitter:description", "6+ years building Android apps at scale. Tech Lead at Jio.")
-}
-
-private fun injectBlobAnimations() {
-    val head = document.head ?: return
-    val style = (document.createElement("style") as HTMLStyleElement)
-    style.textContent = """
-        @keyframes blob-float-1 {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(5%, -10%); }
-            50% { transform: translate(-5%, 5%); }
-            75% { transform: translate(10%, -5%); }
-            100% { transform: translate(0, 0); }
-        }
-        @keyframes blob-float-2 {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(-8%, 6%); }
-            50% { transform: translate(4%, -8%); }
-            75% { transform: translate(-6%, 3%); }
-            100% { transform: translate(0, 0); }
-        }
-        @keyframes blob-float-3 {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(7%, -5%) rotate(5deg); }
-            66% { transform: translate(-3%, 8%) rotate(-3deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
-        }
-        @keyframes glow-pulse {
-            0% { opacity: 0.4; }
-            50% { opacity: 0.7; }
-            100% { opacity: 0.4; }
-        }
-        @keyframes dot-pulse {
-            0% { transform: scale(1); box-shadow: 0 0 12px rgba(61, 220, 132, 0.6); }
-            50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(61, 220, 132, 0.8); }
-            100% { transform: scale(1); box-shadow: 0 0 12px rgba(61, 220, 132, 0.6); }
-        }
-        @keyframes cursor-blink {
-            50% { opacity: 0; }
-        }
-        @keyframes bot-peek-right {
-            0% { transform: translateX(60%) rotate(5deg); }
-            50% { transform: translateX(20%) rotate(-2deg); }
-            100% { transform: translateX(60%) rotate(5deg); }
-        }
-        @keyframes bot-peek-left {
-            0% { transform: scaleX(-1) translateX(60%) rotate(-5deg); }
-            50% { transform: scaleX(-1) translateX(20%) rotate(2deg); }
-            100% { transform: scaleX(-1) translateX(60%) rotate(-5deg); }
-        }
-        @keyframes scroll-bounce {
-            0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.6; }
-            50% { transform: translateX(-50%) translateY(10px); opacity: 1; }
-        }
-    """.trimIndent()
-    head.appendChild(style)
 }

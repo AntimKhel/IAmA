@@ -32,7 +32,7 @@ fun initSiteStyles(ctx: InitSilkContext) {
         }
         registerStyleBase("body") {
             Modifier
-                .fontFamily("Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif")
+                .fontFamily("Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif")
                 .fontSize(18.px)
                 .lineHeight(1.5)
         }
