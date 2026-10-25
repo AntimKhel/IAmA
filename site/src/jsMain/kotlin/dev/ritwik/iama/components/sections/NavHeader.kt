@@ -3,6 +3,7 @@ package dev.ritwik.iama.components.sections
 import androidx.compose.runtime.*
 import com.varabyte.kobweb.core.rememberPageContext
 import com.varabyte.kobweb.silk.theme.colors.ColorMode
+import dev.ritwik.iama.components.ask.AskNavChip
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.util.UiState
 import dev.ritwik.iama.util.css
@@ -64,6 +65,8 @@ fun NavHeader() {
             }
             Button({ classes("rr-nav-link"); onClick { router.tryRoutingTo("/blog") } }) { Text("Blog") }
         }
+
+        AskNavChip()
 
         A(resumeHref, {
             classes("rr-nav-icon")
