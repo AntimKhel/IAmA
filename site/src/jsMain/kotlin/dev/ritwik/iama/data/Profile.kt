@@ -3,6 +3,7 @@ package dev.ritwik.iama.data
 // ---------------------------------------------------------------------------
 // Single source of truth for everything the site says about Ritwik.
 // Sourced from the 2026 résumé (resources/public/resume.pdf).
+// "Ask Ritwik" reads the same facts from site/knowledge/profile.md: update both together.
 // ---------------------------------------------------------------------------
 
 object Profile {

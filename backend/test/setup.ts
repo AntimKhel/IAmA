@@ -9,6 +9,8 @@ beforeEach(async () => {
   await env.DB.batch([
     env.DB.prepare("DELETE FROM notes"),
     env.DB.prepare("DELETE FROM visits"),
+    env.DB.prepare("DELETE FROM ask_usage"),
+    env.DB.prepare("DELETE FROM counters WHERE name LIKE 'ask:%'"),
     env.DB.prepare("UPDATE counters SET value = 0"),
   ]);
 });

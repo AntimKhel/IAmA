@@ -2,3 +2,5 @@
 TURNSTILE_SECRET=1x0000000000000000000000000000000AA
 ADMIN_TOKEN=local-dev-admin-token-123456
 HASH_SALT=local-dev-salt
+# Ask Ritwik reads the knowledge the Kobweb dev server publishes.
+KNOWLEDGE_URL=http://localhost:8080/IAmA/knowledge.json

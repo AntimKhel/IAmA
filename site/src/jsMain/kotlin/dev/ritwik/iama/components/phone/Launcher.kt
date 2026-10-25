@@ -49,6 +49,7 @@ object Apps {
     val skills = LauncherApp("Skills", "fa-solid fa-code", "#7c4dff", "#b06bff", AppAction.Open(AppScreen.SKILLS))
     val awards = LauncherApp("Awards", "fa-solid fa-trophy", "#ffb13d", "#ff8a3d", AppAction.Open(AppScreen.AWARDS))
     val guestbook = LauncherApp("Guestbook", "fa-solid fa-feather-pointed", "#ff6fae", "#ffb13d", AppAction.Open(AppScreen.GUESTBOOK))
+    val ask = LauncherApp("Ask", "fa-solid fa-wand-magic-sparkles", "#7c4dff", "#00bfa5", AppAction.Open(AppScreen.ASK))
 
     val phone = LauncherApp("Phone", "fa-solid fa-phone", "#3ddc84", "#00bfa5", AppAction.Open(AppScreen.CONTACT))
     val mail = LauncherApp("Mail", "fa-solid fa-envelope", "#2f6bff", "#00bfa5", AppAction.External("mailto:${Profile.email}"))
@@ -61,9 +62,15 @@ object Apps {
     val grid get() = listOf(work, products, blog, about, contact, resume, linkedIn, lastSlot)
 
     /** Every app, for launcher search. */
-    val all get() = listOfNotNull(work, products, blog, about, skills, awards, contact, resume, guestbook.takeIf { Backend.enabled }, linkedIn, github)
-    val desk get() = listOf(work, products, blog, about, skills, awards, contact, resume, linkedIn, lastSlot)
-    val dock = listOf(phone, mail, play, browser)
+    val all get() = listOfNotNull(
+        work, products, blog, about, skills, awards, contact, resume,
+        ask.takeIf { Backend.enabled }, guestbook.takeIf { Backend.enabled }, linkedIn, github,
+    )
+
+    // Ask needs the backend too; it takes the slots of apps that are reachable elsewhere (Browser opened
+    // the Blog; Awards is in Search and About).
+    val desk get() = listOf(work, products, blog, about, skills, if (Backend.enabled) ask else awards, contact, resume, linkedIn, lastSlot)
+    val dock get() = listOf(phone, mail, play, if (Backend.enabled) ask else browser)
 }
 
 /** One launcher icon. Links (résumé, external) render as real anchors so they work without JS routing. */

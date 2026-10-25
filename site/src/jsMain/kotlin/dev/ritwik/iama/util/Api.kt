@@ -46,6 +46,56 @@ object Api {
     }
 }
 
+/** One question/answer pair sent back to Ask Ritwik as conversation context. */
+class AskTurn(val question: String, val answer: String)
+
+/**
+ * Streams an Ask Ritwik answer: [onStart] gets the suggested actions (e.g. "app:work", "post:r8-story") and
+ * the questions left today, then [onText] gets the answer as it arrives. Returns an error message, or null.
+ */
+suspend fun askRitwik(
+    question: String,
+    history: List<AskTurn>,
+    onStart: (actions: List<String>, remaining: Int?) -> Unit,
+    onText: (String) -> Unit,
+): String? {
+    val base = Backend.apiBase ?: return "Ask isn't available on this copy of the site."
+    val controller: dynamic = js("new AbortController()")
+    val timer = window.setTimeout({ controller.abort() }, 60_000)
+    return try {
+        val init: dynamic = js("({})")
+        init.method = "POST"
+        init.signal = controller.signal
+        init.headers = jsObject("Content-Type" to "application/json")
+        init.body = JSON.stringify(
+            jsObject(
+                "question" to question,
+                "history" to history.map { jsObject("q" to it.question, "a" to it.answer) }.toTypedArray(),
+            )
+        )
+        val res = window.fetch("$base/ask", init.unsafeCast<RequestInit>()).await()
+        if (!res.ok) {
+            val text = res.text().await()
+            val error = runCatching { JSON.parse<dynamic>(text).error as? String }.getOrNull()
+            return error ?: "Ask couldn't answer that (${res.status}). Try again in a moment."
+        }
+        val actions = (res.headers.get("X-Ask-Actions") ?: "").split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        onStart(actions, res.headers.get("X-Ask-Remaining")?.toIntOrNull())
+        val reader = res.asDynamic().body.getReader()
+        val decoder: dynamic = js("new TextDecoder()")
+        while (true) {
+            val chunk = (reader.read() as kotlin.js.Promise<dynamic>).await()
+            if (chunk.done == true) break
+            onText(decoder.decode(chunk.value, js("({ stream: true })")) as String)
+        }
+        null
+    } catch (_: Throwable) {
+        "Couldn't reach Ask. Check your connection and try again."
+    } finally {
+        window.clearTimeout(timer)
+    }
+}
+
 /** Builds a plain JS object, e.g. `jsObject("name" to n, "message" to m)`. */
 fun jsObject(vararg pairs: Pair<String, Any?>): dynamic {
     val o: dynamic = js("({})")

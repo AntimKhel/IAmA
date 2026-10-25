@@ -1,3 +1,5 @@
+import { ASK_LIMITS, buildMessages, loadKnowledge, retrieve, sseToText, type Knowledge, type Turn } from "./ask";
+
 /**
  * iama-api — visitor counter + guestbook for https://antimkhel.github.io/IAmA/
  *
@@ -6,6 +8,7 @@
  *   GET  /stats                      { visitors }
  *   GET  /notes?before=<id>          approved notes, newest first, paged
  *   POST /notes                      { name, message, turnstileToken } → stored as pending (202)
+ *   POST /ask                        { question, history } → streamed plain-text answer ("Ask Ritwik", Workers AI)
  * Admin (Authorization: Bearer <ADMIN_TOKEN>):
  *   GET    /admin/notes?status=pending|approved
  *   POST   /admin/notes/:id/approve
@@ -21,6 +24,9 @@ export interface Env {
   TURNSTILE_SECRET: string;
   ADMIN_TOKEN: string;
   HASH_SALT: string;
+  AI: Ai;
+  ASK_MODEL: string;
+  KNOWLEDGE_URL: string;
 }
 
 export const LIMITS = {
@@ -52,6 +58,8 @@ export default {
 
   async scheduled(_event: ScheduledController, env: Env): Promise<void> {
     await env.DB.prepare("DELETE FROM visits WHERE day < ?").bind(dayKey(-1)).run();
+    await env.DB.prepare("DELETE FROM ask_usage WHERE day < ?").bind(dayKey(-1)).run();
+    await env.DB.prepare("DELETE FROM counters WHERE name LIKE 'ask:%' AND name < ?").bind(`ask:${dayKey(-1)}`).run();
   },
 };
 
@@ -64,6 +72,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   if (path === "/stats" && method === "GET") return stats(env);
   if (path === "/notes" && method === "GET") return listNotes(url, env);
   if (path === "/notes" && method === "POST") return createNote(request, env);
+  if (path === "/ask" && method === "POST") return ask(request, env);
 
   if (path.startsWith("/admin/")) {
     if (!(await isAdmin(request, env))) return json({ error: "Unauthorized" }, 401);
@@ -202,6 +211,94 @@ async function verifyTurnstile(token: unknown, ip: string, env: Env): Promise<bo
 }
 
 // ---------------------------------------------------------------------------
+// Ask Ritwik
+// ---------------------------------------------------------------------------
+
+async function ask(request: Request, env: Env): Promise<Response> {
+  // Only the site itself may ask (keeps casual scripts off the shared daily budget).
+  if (!isAllowedOrigin(request.headers.get("Origin"), env)) return json({ error: "Forbidden" }, 403);
+
+  const raw = await request.text();
+  if (raw.length > ASK_LIMITS.bodyBytes) return json({ error: "That's a bit long." }, 413);
+  let body: { question?: unknown; history?: unknown };
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return json({ error: "Invalid request." }, 400);
+  }
+  const question = cleanLine(body.question);
+  if (question.length < 2 || question.length > ASK_LIMITS.question) {
+    return json({ error: `Questions can be up to ${ASK_LIMITS.question} characters.` }, 400);
+  }
+  const history: Turn[] = (Array.isArray(body.history) ? body.history : [])
+    .slice(-ASK_LIMITS.history)
+    .map((t: { q?: unknown; a?: unknown }) => ({
+      q: cleanLine(t?.q).slice(0, ASK_LIMITS.question),
+      a: cleanMessage(t?.a).slice(0, ASK_LIMITS.historyAnswer),
+    }))
+    .filter((t) => t.q && t.a);
+
+  const day = dayKey(0);
+  const visitor = await sha256(`${clientIp(request)}|${request.headers.get("User-Agent") ?? ""}|${day}|${env.HASH_SALT}`);
+  const mine = await env.DB.prepare(
+    "INSERT INTO ask_usage (day, hash, count) VALUES (?, ?, 1) ON CONFLICT (day, hash) DO UPDATE SET count = count + 1 RETURNING count",
+  )
+    .bind(day, visitor)
+    .first<{ count: number }>();
+  const used = mine?.count ?? 1;
+  if (used > ASK_LIMITS.perVisitorPerDay) {
+    return json({ error: "That's all the questions for today. Email Ritwik at raj.ritwik96@gmail.com, he'd be glad to hear from you." }, 429);
+  }
+  const total = await env.DB.prepare(
+    "INSERT INTO counters (name, value) VALUES (?, 1) ON CONFLICT (name) DO UPDATE SET value = value + 1 RETURNING value",
+  )
+    .bind(`ask:${day}`)
+    .first<{ value: number }>();
+  if ((total?.value ?? 1) > ASK_LIMITS.perDay) {
+    return json({ error: "Ask is resting for today. Try Search, or email Ritwik at raj.ritwik96@gmail.com." }, 503);
+  }
+
+  let kb: Knowledge;
+  try {
+    kb = await loadKnowledge(env.KNOWLEDGE_URL);
+  } catch (err) {
+    console.error("knowledge", err);
+    return json({ error: "Ask can't reach its notes right now. Try Search, or email Ritwik at raj.ritwik96@gmail.com." }, 503);
+  }
+  const lastQuestion = history.at(-1)?.q ?? "";
+  const { context, actions } = retrieve(kb, `${question} ${lastQuestion}`);
+  let stream: ReadableStream<Uint8Array>;
+  try {
+    stream = (await env.AI.run(env.ASK_MODEL as keyof AiModels, {
+      messages: buildMessages(question, history, context),
+      max_tokens: ASK_LIMITS.maxTokens,
+      temperature: 0.3,
+      stream: true,
+      // The default models "think" first, which spends the token (and free neuron) budget on hidden text.
+      chat_template_kwargs: { enable_thinking: false },
+    } as never)) as unknown as ReadableStream<Uint8Array>;
+  } catch (err) {
+    // On the free plan this is usually the daily allocation running out.
+    console.error("ai", err);
+    return json({ error: "Ask is resting for today. Try Search, or email Ritwik at raj.ritwik96@gmail.com." }, 503);
+  }
+
+  const toText = sseToText((u) =>
+    console.log(JSON.stringify({ ask: "usage", model: env.ASK_MODEL, in: u.prompt_tokens, out: u.completion_tokens, neurons: u.neurons })),
+  );
+  return new Response(stream.pipeThrough(toText), {
+    headers: {
+      // The body is plain text, but labelled as an event stream: Cloudflare compresses text/plain, and
+      // compression buffers the whole answer, which would then arrive all at once instead of word by word.
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-store, no-transform",
+      "X-Ask-Actions": actions.join(","),
+      "X-Ask-Remaining": String(Math.max(0, ASK_LIMITS.perVisitorPerDay - used)),
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Admin
 // ---------------------------------------------------------------------------
 
@@ -239,13 +336,18 @@ async function remove(id: number, env: Env): Promise<Response> {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function corsHeaders(origin: string | null, env: Env): Record<string, string> {
+function isAllowedOrigin(origin: string | null, env: Env): boolean {
   const allowed = (env.ALLOWED_ORIGINS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  if (!origin || !allowed.includes(origin)) return { Vary: "Origin" };
+  return !!origin && allowed.includes(origin);
+}
+
+function corsHeaders(origin: string | null, env: Env): Record<string, string> {
+  if (!isAllowedOrigin(origin, env)) return { Vary: "Origin" };
   return {
-    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Origin": origin!,
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Expose-Headers": "X-Ask-Actions, X-Ask-Remaining",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };

@@ -200,10 +200,35 @@ kobweb {
     }
 }
 
+// "Ask Ritwik" (the Worker in backend/) answers from what the site publishes: the profile facts in
+// knowledge/profile.md plus every blog post, bundled into public/knowledge.json. New posts need no changes
+// anywhere else; drafts (`draft: true`) stay out, like in the blog index.
+val askKnowledge = tasks.register("askKnowledge") {
+    val profile = layout.projectDirectory.file("knowledge/profile.md")
+    val blogDir = layout.projectDirectory.dir("src/jsMain/resources/markdown/blog")
+    val outDir = layout.buildDirectory.dir("generated/ask-knowledge")
+    inputs.file(profile)
+    inputs.dir(blogDir)
+    outputs.dir(outDir)
+    doLast {
+        val draft = Regex("""(?m)^draft:\s*true\s*$""")
+        val posts = blogDir.asFile.listFiles { f -> f.extension == "md" }.orEmpty().sortedBy { it.name }
+            .filterNot { draft.containsMatchIn(it.readText().substringBefore("\n---", "")) }
+            .map { f ->
+                // Same route Kobweb gives the page: R8Story.md -> /blog/r8-story
+                val slug = f.nameWithoutExtension.replace(Regex("(?<=[a-z0-9])(?=[A-Z])"), "-").lowercase()
+                mapOf("slug" to slug, "markdown" to f.readText())
+            }
+        val json = groovy.json.JsonOutput.toJson(mapOf("profile" to profile.asFile.readText(), "posts" to posts))
+        outDir.get().file("public/knowledge.json").asFile.apply { parentFile.mkdirs(); writeText(json) }
+    }
+}
+
 kotlin {
     configAsKobwebApplication("iama")
 
     sourceSets {
+        jsMain.configure { resources.srcDir(askKnowledge) }
         jsMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.html.core)

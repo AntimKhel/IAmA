@@ -8,12 +8,15 @@ export default defineConfig(async () => {
     plugins: [
       cloudflareTest({
         wrangler: { configPath: "./wrangler.toml" },
+        // Tests use a fake Workers AI binding, so never open a connection to Cloudflare.
+        remoteBindings: false,
         miniflare: {
           bindings: {
             TEST_MIGRATIONS: migrations,
             TURNSTILE_SECRET: "test-turnstile-secret",
             ADMIN_TOKEN: "test-admin-token-0123456789",
             HASH_SALT: "test-salt",
+            KNOWLEDGE_URL: "https://site.test/knowledge.json",
           },
         },
       }),

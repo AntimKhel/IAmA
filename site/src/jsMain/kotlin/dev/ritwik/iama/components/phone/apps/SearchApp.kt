@@ -9,6 +9,7 @@ import dev.ritwik.iama.components.phone.AppBar
 import dev.ritwik.iama.components.phone.Apps
 import dev.ritwik.iama.components.phone.LauncherApp
 import dev.ritwik.iama.components.phone.PhoneState
+import dev.ritwik.iama.data.Backend
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.data.experiences
 import dev.ritwik.iama.data.products
@@ -75,6 +76,11 @@ private val combiningMarks = Regex("[\\u0300-\\u036f]")
 /** Lower-case and accent-free, so "resume" finds "Résumé". */
 private fun fold(s: String): String = (s.lowercase().asDynamic().normalize("NFD") as String).replace(combiningMarks, "")
 
+private val questionWords = setOf("what", "how", "who", "why", "when", "where", "which", "does", "did", "is", "has", "can", "tell", "should")
+
+private fun looksLikeQuestion(q: String): Boolean =
+    q.trim().endsWith("?") || q.trim().substringBefore(" ").lowercase() in questionWords || q.trim().split(Regex("\\s+")).size >= 4
+
 /** Simple, predictable ranking: prefix of the title beats a word prefix, beats a substring, beats keywords. */
 private fun rank(hits: List<Hit>, query: String): List<Hit> {
     val terms = fold(query).split(Regex("\\s+")).filter { it.isNotBlank() }
@@ -107,7 +113,16 @@ fun SearchApp() {
     val suggestions = remember {
         all.filter { it.kind == "Action" }.take(3) + all.filter { it.kind == "Product" }.take(2) + all.filter { it.kind == "Post" }.take(2)
     }
-    val shown = if (query.isBlank()) suggestions else results
+    val shown = when {
+        query.isBlank() -> suggestions
+        !Backend.enabled -> results
+        else -> {
+            // Hand the query to Ask Ritwik: first when it reads like a question (or nothing matched), else last.
+            val ask = Hit("Ask Ritwik: “${query.trim()}”", "AI answer from what's on this site", "Ask", "fa-solid fa-wand-magic-sparkles",
+                run = { openApp(Apps.ask, query.trim()) })
+            if (results.isEmpty() || looksLikeQuestion(query)) listOf(ask) + results else results + ask
+        }
+    }
     LaunchedEffect(query) { selected = 0 }
     // Keep the highlighted result visible while arrowing through the list.
     LaunchedEffect(selected) {
@@ -139,7 +154,7 @@ fun SearchApp() {
             }
         }
         Heading(if (query.isBlank()) "Suggestions" else "${results.size} result${if (results.size == 1) "" else "s"}")
-        if (query.isNotBlank() && results.isEmpty()) {
+        if (query.isNotBlank() && results.isEmpty() && !Backend.enabled) {
             P({ classes("rr-a-p") }) { Text("Nothing matches “$query”. Try a technology, a product or a company.") }
         }
         Div({ classes("rr-search-results"); attr("role", "listbox") }) {
