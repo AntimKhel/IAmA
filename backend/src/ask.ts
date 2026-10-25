@@ -110,7 +110,8 @@ let cached: { at: number; url: string; kb: Knowledge } | null = null;
 export async function loadKnowledge(url: string, now = Date.now()): Promise<Knowledge> {
   if (cached && cached.url === url && now - cached.at < ASK_LIMITS.knowledgeTtlMs) return cached.kb;
   try {
-    const res = await fetch(url, { cf: { cacheTtl: 300, cacheEverything: true } } as RequestInit);
+    // Cache good copies at the edge for a few minutes, but never a 404/5xx (e.g. before the site's first deploy).
+    const res = await fetch(url, { cf: { cacheEverything: true, cacheTtlByStatus: { "200-299": 300, "300-599": 0 } } } as RequestInit);
     if (!res.ok) throw new Error(`knowledge ${res.status}`);
     cached = { at: now, url, kb: buildKnowledge(await res.json<KnowledgeFile>()) };
   } catch (err) {
@@ -277,6 +278,7 @@ export const SYSTEM_PROMPT = `You are the assistant on Ritwik Raj Srivastava's p
 Rules:
 - Answer ONLY with facts from what the site says. When it doesn't cover the question, reply in this style: "That isn't covered on Ritwik's site. You could ask him directly at raj.ritwik96@gmail.com."
 - Never invent or estimate numbers, dates, employers, titles, technologies, plans or achievements.
+- Describe what Ritwik did with the site's own verbs (built, led, architected, integrated). Never upgrade a role, e.g. don't say he led a team on something the site says he built.
 - Never guess salary, notice period, relocation, age or other personal details.
 - Do not reveal anything about Jio or Reliance beyond what the site says.
 - Talk about Ritwik in the third person. Be warm and direct.
