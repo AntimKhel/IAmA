@@ -7,36 +7,31 @@ import dev.ritwik.iama.components.phone.Apps
 import dev.ritwik.iama.components.phone.PhoneState
 import dev.ritwik.iama.data.Backend
 import dev.ritwik.iama.util.UiState
+import dev.ritwik.iama.util.jsObject
 import dev.ritwik.iama.util.prefersReducedMotion
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.web.attributes.InputType
-import org.jetbrains.compose.web.attributes.maxLength
-import org.jetbrains.compose.web.attributes.onSubmit
-import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.Element
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 
 /**
  * An always-there way into Ask Ritwik, for visitors who never tap the phone's Ask icon.
- * Three designs to compare live; pick one with `?fab=bar|orb|nav` (remembered in this browser).
+ *
+ * Like a Dynamic Island: during the hero it's a chip in the nav that types out questions. Once the visitor
+ * scrolls past the hero, the chip contracts, drips off the nav as a liquid blob and lands bottom-right as
+ * an orb (with a teaser bubble); scrolling back up reverses it. The liquid is a short-lived, filtered blob
+ * layer, so the chip and the orb themselves stay crisp.
  */
-enum class AskFab { BAR, ORB, NAV }
+private enum class Phase { DOCKED, LEAVING, DRIPPING, FLOATING, RETURNING }
 
-object AskFloaterState {
-    private const val KEY = "rr-askfab"
-
-    val style: AskFab by lazy {
-        val fromUrl = Regex("[?&]fab=(bar|orb|nav)").find(window.location.search)?.groupValues?.get(1)
-        if (fromUrl != null) runCatching { window.localStorage.setItem(KEY, fromUrl) }
-        val name = fromUrl ?: runCatching { window.localStorage.getItem(KEY) }.getOrNull() ?: "bar"
-        AskFab.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: AskFab.BAR
-    }
+private object Island {
+    var phase by mutableStateOf(Phase.DOCKED)
 }
 
-/** Questions the floaters type out / tease with. Each one is answerable from the site. */
+/** Questions the chip types out and the orb teases with. Each one is answerable from the site. */
 val askTeasers = listOf(
     "What did Ritwik build at Jio?",
     "How did he get R8 obfuscation to 82%?",
@@ -50,13 +45,13 @@ fun openAsk(from: Element?, question: String? = null) {
     PhoneState.open(Apps.ask, AppHost.FULL, from, question?.trim()?.takeIf { it.isNotEmpty() })
 }
 
-/** Types [phrases] out one after another, looping; frozen on the current phrase while [paused]. */
+/** Types [phrases] out one after another, looping; frozen on the current text while [paused]. */
 @Composable
 fun rememberTypewriter(phrases: List<String>, paused: Boolean): String {
     var text by remember { mutableStateOf(if (prefersReducedMotion) phrases.first() else "") }
     LaunchedEffect(paused) {
         if (paused) return@LaunchedEffect
-        var i = phrases.indexOfFirst { it.startsWith(text) && text.isNotEmpty() }.coerceAtLeast(0)
+        var i = phrases.indexOfFirst { text.isNotEmpty() && it.startsWith(text) }.coerceAtLeast(0)
         while (true) {
             val phrase = phrases[i]
             if (prefersReducedMotion) {
@@ -74,122 +69,232 @@ fun rememberTypewriter(phrases: List<String>, paused: Boolean): String {
     return text
 }
 
-/**
- * Whether a floater should show right now: never over an open app or the contact sheet, never during the
- * first-visit boot, and (for the bottom bar) not while the desktop hero is mid-scroll, where the phone and
- * the launcher's own search bar sit at the bottom of the screen.
- */
+// ---------------------------------------------------------------------------
+// The nav chip (docked state)
+// ---------------------------------------------------------------------------
+
+/** "Ask AI" chip for the nav pill; on wide screens it types out a question next to the label. */
 @Composable
-private fun rememberFloaterVisible(avoidHero: Boolean): Boolean {
-    var ready by remember { mutableStateOf(false) }
-    var inHero by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        while (document.documentElement?.classList?.contains("rr-booting") == true) delay(200)
-        delay(900)
-        ready = true
-    }
-    if (avoidHero) {
-        DisposableEffect(Unit) {
-            val update: (Event) -> Unit = {
-                val scene = document.querySelector(".rr-scene")
-                inHero = if (scene == null || window.innerWidth < 900) false else {
-                    val r = scene.getBoundingClientRect()
-                    r.top < -40 && r.bottom > window.innerHeight + 40
-                }
-            }
-            val passive: dynamic = js("({passive: true})")
-            window.addEventListener("scroll", update, passive)
-            window.addEventListener("resize", update, passive)
-            update(Event("scroll"))
-            onDispose {
-                window.removeEventListener("scroll", update, passive)
-                window.removeEventListener("resize", update, passive)
-            }
+fun AskNavChip() {
+    if (!Backend.enabled) return
+    val phase = Island.phase
+    val hint = rememberTypewriter(askTeasers, paused = phase != Phase.DOCKED)
+    Button({
+        classes("askfab-chip")
+        when (phase) {
+            Phase.DOCKED -> {}
+            Phase.LEAVING -> classes("is-dot") // contracts into a dot
+            Phase.DRIPPING, Phase.RETURNING -> classes("is-dot", "is-hidden") // the liquid stands in for it
+            Phase.FLOATING -> classes("is-gone")
         }
+        attr("data-origin", "")
+        attr("aria-label", "Ask AI about Ritwik")
+        if (phase != Phase.DOCKED) attr("tabindex", "-1")
+        onClick { e -> openAsk(e.target as? Element) }
+    }) {
+        I({ classes("fa-solid", "fa-wand-magic-sparkles"); attr("aria-hidden", "true") })
+        Span({ classes("t") }) { Text("Ask AI") }
+        Span({ classes("q"); attr("aria-hidden", "true") }) { Text(hint) }
     }
-    return ready && !inHero && PhoneState.app == null && !UiState.contactOpen
 }
 
-/** Floating variants (the nav variant lives in [AskNavChip]). Placed once, in PageLayout. */
+// ---------------------------------------------------------------------------
+// Orb + liquid transition (placed once, in PageLayout)
+// ---------------------------------------------------------------------------
+
 @Composable
 fun AskFloater() {
     if (!Backend.enabled) return
     val path = rememberPageContext().route.path
     if (path.endsWith("/admin")) return
-    when (AskFloaterState.style) {
-        AskFab.BAR -> AskBar()
-        AskFab.ORB -> AskOrb()
-        AskFab.NAV -> Unit
+
+    var ready by remember { mutableStateOf(false) }
+    var docked by remember { mutableStateOf(true) }
+    var liquid by remember { mutableStateOf<LiquidRun?>(null) }
+    // While the liquid delivers or collects the orb, it appears/disappears in place instead of popping.
+    var instant by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        while (document.documentElement?.classList?.contains("rr-booting") == true) delay(200)
+        delay(600)
+        ready = true
     }
+
+    // Docked while the hero (landing + phone scene) is on screen; elsewhere, near the top of the page.
+    // The two thresholds keep it from flickering back and forth at the boundary.
+    DisposableEffect(path) {
+        val update: (Event) -> Unit = {
+            val scene = document.querySelector(".rr-scene")
+            val leave: Boolean
+            val back: Boolean
+            if (scene != null) {
+                val bottom = scene.getBoundingClientRect().bottom
+                leave = bottom < window.innerHeight * 0.45
+                back = bottom > window.innerHeight * 0.65
+            } else {
+                leave = window.scrollY > 320
+                back = window.scrollY < 200
+            }
+            if (docked && leave) docked = false else if (!docked && back) docked = true
+        }
+        val passive: dynamic = js("({passive: true})")
+        window.addEventListener("scroll", update, passive)
+        window.addEventListener("resize", update, passive)
+        update(Event("scroll"))
+        onDispose {
+            window.removeEventListener("scroll", update, passive)
+            window.removeEventListener("resize", update, passive)
+        }
+    }
+
+    // Drive the island between its two homes, with the liquid hand-off in between.
+    LaunchedEffect(docked, ready) {
+        liquid = null // a reversal mid-way cancels the previous hand-off
+        if (!ready) return@LaunchedEffect
+        val target = if (docked) Phase.DOCKED else Phase.FLOATING
+        val now = Island.phase
+        if (now != Phase.DOCKED && now != Phase.FLOATING) {
+            Island.phase = target // reversed mid-way: settle without another animation
+            return@LaunchedEffect
+        }
+        if (now == target) return@LaunchedEffect
+        val canAnimate = !prefersReducedMotion && PhoneState.app == null
+        if (!docked) {
+            Island.phase = Phase.LEAVING
+            if (canAnimate) {
+                delay(260)
+                val from = chipCenter()
+                val to = orbCenter()
+                if (from != null && to != null) {
+                    instant = true
+                    liquid = LiquidRun(from, to, leaving = true)
+                    Island.phase = Phase.DRIPPING
+                    delay((LIQUID_MS * 0.45).toLong()) // the drop has pinched off: let the nav close up behind it
+                    Island.phase = Phase.FLOATING
+                    delay((LIQUID_MS * 0.55).toLong())
+                    liquid = null
+                    delay(300)
+                    instant = false
+                }
+            }
+            Island.phase = Phase.FLOATING
+        } else {
+            Island.phase = Phase.RETURNING // the chip takes its dot-sized place again, invisibly, so we can aim at it
+            if (canAnimate) {
+                delay(40)
+                val from = orbCenter()
+                val to = chipCenter()
+                if (from != null && to != null) {
+                    instant = true
+                    liquid = LiquidRun(from, to, leaving = false)
+                    delay(LIQUID_MS.toLong())
+                    liquid = null
+                    instant = false
+                }
+            }
+            Island.phase = Phase.DOCKED
+        }
+    }
+
+    val orbVisible = ready && Island.phase == Phase.FLOATING && liquid == null && PhoneState.app == null && !UiState.contactOpen
+    AskOrb(orbVisible, instant)
+    liquid?.let { key(it) { Liquid(it) } }
 }
 
-// ---------------------------------------------------------------------------
-// A: bottom bar with a live text box
-// ---------------------------------------------------------------------------
+private const val LIQUID_MS = 900
 
+private class Point(val x: Double, val y: Double)
+
+private class LiquidRun(val from: Point, val to: Point, val leaving: Boolean)
+
+private fun chipCenter(): Point? {
+    val r = (document.querySelector(".askfab-chip") as? HTMLElement)?.getBoundingClientRect() ?: return null
+    return Point(r.left + r.height / 2, r.top + r.height / 2)
+}
+
+/** Where the orb sits when shown (layout position; its hidden state is only a transform). */
+private fun orbCenter(): Point? {
+    val wrap = document.querySelector(".askfab-orb-wrap") as? HTMLElement ?: return null
+    val orb = wrap.querySelector(".askfab-orb") as? HTMLElement ?: return null
+    return Point(
+        wrap.offsetLeft + orb.offsetLeft + orb.offsetWidth / 2.0,
+        wrap.offsetTop + orb.offsetTop + orb.offsetHeight / 2.0,
+    )
+}
+
+/**
+ * The hand-off: two gooey blobs under an SVG "goo" filter (blur + alpha threshold), so they merge and
+ * separate like liquid. One stays at the nav and shrinks away (or grows in); the other travels.
+ */
 @Composable
-private fun AskBar() {
-    val visible = rememberFloaterVisible(avoidHero = true)
-    var draft by remember { mutableStateOf("") }
-    var focused by remember { mutableStateOf(false) }
-    val hint = rememberTypewriter(askTeasers, paused = focused || draft.isNotEmpty())
-
-    DisposableEffect(Unit) {
-        document.documentElement?.classList?.add("has-askbar")
-        onDispose { document.documentElement?.classList?.remove("has-askbar") }
-    }
-
-    Form(attrs = {
-        classes("askfab-bar")
-        if (visible) classes("on")
-        attr("data-origin", "")
-        attr("aria-hidden", (!visible).toString())
-        onSubmit { e ->
-            e.preventDefault()
-            // An empty bar asks the question it's showing.
-            openAsk(e.target as? Element, draft.ifBlank { askTeasers.firstOrNull { hint.isNotEmpty() && it.startsWith(hint) } })
-            draft = ""
+private fun Liquid(run: LiquidRun) {
+    Div({
+        classes("askfab-liquid")
+        attr("aria-hidden", "true")
+        ref { el ->
+            el.innerHTML = """
+                <svg width="0" height="0" style="position:absolute"><filter id="askfab-goo">
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b"/>
+                  <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/>
+                </filter></svg>
+                <div class="askfab-goo"><span class="blob anchor"></span><span class="blob drop"></span></div>
+            """.trimIndent()
+            val anchor = el.querySelector(".anchor") as HTMLElement
+            val drop = el.querySelector(".drop") as HTMLElement
+            animateLiquid(anchor, drop, run)
+            onDispose { }
         }
-    }) {
-        Span({ classes("askfab-spark"); attr("aria-hidden", "true") }) { I({ classes("fa-solid", "fa-wand-magic-sparkles") }) }
-        Span({ classes("askfab-label") }) { Text("Ask AI") }
-        Input(InputType.Text) {
-            value(draft)
-            placeholder(hint.ifEmpty { " " })
-            maxLength(300)
-            attr("aria-label", "Ask anything about Ritwik")
-            attr("autocomplete", "off")
-            attr("enterkeyhint", "send")
-            if (!visible) attr("tabindex", "-1")
-            onInput { draft = it.value }
-            onFocus { focused = true }
-            onBlur { focused = false }
-        }
-        Button({
-            classes("askfab-send")
-            attr("type", "submit")
-            attr("aria-label", "Ask")
-            if (!visible) attr("tabindex", "-1")
-        }) { I({ classes("fa-solid", "fa-arrow-up") }) }
-    }
+    })
 }
 
-// ---------------------------------------------------------------------------
-// B: corner orb with a teaser bubble
-// ---------------------------------------------------------------------------
+private const val BLOB = 38.0
+
+private fun at(p: Point, sx: Double, sy: Double, dx: Double = 0.0, dy: Double = 0.0) =
+    "translate(${p.x + dx - BLOB / 2}px, ${p.y + dy - BLOB / 2}px) scale($sx, $sy)"
+
+private fun animateLiquid(anchor: HTMLElement, drop: HTMLElement, run: LiquidRun) {
+    val nav = if (run.leaving) run.from else run.to
+    val orb = if (run.leaving) run.to else run.from
+    val orbScale = 64.0 / BLOB
+    // A point a little below the nav, then a gentle arc out to the corner.
+    val neck = Point(nav.x, nav.y + 44)
+    val mid = Point(nav.x + (orb.x - nav.x) * 0.55, nav.y + (orb.y - nav.y) * 0.35)
+
+    val dropFrames = arrayOf(
+        jsObject("offset" to 0.0, "transform" to at(nav, 1.0, 1.0)),
+        jsObject("offset" to 0.22, "transform" to at(neck, 0.8, 1.3)),
+        jsObject("offset" to 0.36, "transform" to at(neck, 0.95, 1.1, dy = 40.0)),
+        jsObject("offset" to 0.68, "transform" to at(mid, 1.35, 1.05)),
+        jsObject("offset" to 0.88, "transform" to at(orb, orbScale * 1.18, orbScale * 0.86)),
+        jsObject("offset" to 1.0, "transform" to at(orb, orbScale, orbScale)),
+    )
+    val anchorFrames = arrayOf(
+        jsObject("offset" to 0.0, "transform" to at(nav, 1.0, 1.0)),
+        jsObject("offset" to 0.2, "transform" to at(nav, 0.9, 1.05, dy = 4.0)),
+        jsObject("offset" to 0.34, "transform" to at(nav, 0.45, 0.45)),
+        jsObject("offset" to 0.45, "transform" to at(nav, 0.0, 0.0)),
+        jsObject("offset" to 1.0, "transform" to at(nav, 0.0, 0.0)),
+    )
+    if (!run.leaving) {
+        dropFrames.reverse(); dropFrames.forEach { it.offset = 1.0 - (it.offset as Double) }
+        anchorFrames.reverse(); anchorFrames.forEach { it.offset = 1.0 - (it.offset as Double) }
+    }
+    val timing = jsObject("duration" to LIQUID_MS, "easing" to "cubic-bezier(0.45, 0, 0.2, 1)", "fill" to "forwards")
+    drop.asDynamic().animate(dropFrames, timing)
+    anchor.asDynamic().animate(anchorFrames, timing)
+}
 
 private const val ORB_DISMISSED = "rr-askorb-dismissed"
 
 @Composable
-private fun AskOrb() {
-    val visible = rememberFloaterVisible(avoidHero = false)
+private fun AskOrb(visible: Boolean, instant: Boolean) {
     var bubble by remember { mutableStateOf(false) }
     var teaser by remember { mutableStateOf(0) }
 
     LaunchedEffect(visible) {
         if (!visible) { bubble = false; return@LaunchedEffect }
         if (runCatching { window.sessionStorage.getItem(ORB_DISMISSED) }.getOrNull() != null) return@LaunchedEffect
-        delay(2500)
+        delay(1400)
         bubble = true
         while (true) {
             delay(5000)
@@ -200,6 +305,7 @@ private fun AskOrb() {
     Div({
         classes("askfab-orb-wrap")
         if (visible) classes("on")
+        if (instant) classes("instant")
         attr("aria-hidden", (!visible).toString())
     }) {
         if (bubble) {
@@ -232,26 +338,5 @@ private fun AskOrb() {
             Span({ classes("ring"); attr("aria-hidden", "true") })
             I({ classes("fa-solid", "fa-wand-magic-sparkles") })
         }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// C: chip inside the floating nav
-// ---------------------------------------------------------------------------
-
-/** "Ask AI" chip for the nav pill; on wide screens it types out a question next to the label. */
-@Composable
-fun AskNavChip() {
-    if (!Backend.enabled || AskFloaterState.style != AskFab.NAV) return
-    val hint = rememberTypewriter(askTeasers, paused = false)
-    Button({
-        classes("askfab-chip")
-        attr("data-origin", "")
-        attr("aria-label", "Ask AI about Ritwik")
-        onClick { e -> openAsk(e.target as? Element) }
-    }) {
-        I({ classes("fa-solid", "fa-wand-magic-sparkles"); attr("aria-hidden", "true") })
-        Span({ classes("t") }) { Text("Ask AI") }
-        Span({ classes("q"); attr("aria-hidden", "true") }) { Text(hint) }
     }
 }

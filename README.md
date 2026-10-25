@@ -11,8 +11,10 @@ questions from what's published on the site.
 
 - **Hero phone**: a 3D phone with working apps (Work, Products, Blog, About, Skills, Awards, Contact, Résumé,
   Guestbook, Search, Ask). On phones, the visitor's screen *is* the home screen.
-- **Ask Ritwik**: chat with an AI that has read the site, from the phone dock, the desktop launcher, Search, or the
-  floating "Ask AI" entry point. Answers stream in, with buttons that open the relevant app, product or post.
+- **Ask Ritwik**: chat with an AI that has read the site. It's in the phone dock, the desktop launcher and Search,
+  and in the nav as an "Ask AI" chip that types out questions; past the hero, the chip drips off the nav like
+  liquid and lands bottom-right as an orb (and flows back when you scroll up). Answers stream in, with buttons
+  that open the relevant app, product or post.
 - **Search** (⌘K / Ctrl+K): apps, products, posts, companies, skills and quick actions.
 - **Blog**: markdown posts, discovered automatically, with syntax highlighting and charts.
 - **Visitor counter and guestbook**: notes appear after approval at `/admin`.
@@ -42,7 +44,7 @@ and Ask hide or show a friendly message instead of breaking the page.
 | Path | What it is |
 |---|---|
 | `site/src/jsMain/kotlin/dev/ritwik/iama/data/Profile.kt` | Single source of truth for everything the site says about Ritwik |
-| `site/src/jsMain/kotlin/dev/ritwik/iama/components/` | `hero/` (phone scene), `phone/` + `phone/apps/` (launcher and apps), `sections/`, `blog/`, `guestbook/`, `ask/` (Ask AI floater), `devmode/` |
+| `site/src/jsMain/kotlin/dev/ritwik/iama/components/` | `hero/` (phone scene), `phone/` + `phone/apps/` (launcher and apps), `sections/`, `blog/`, `guestbook/`, `ask/` (nav chip, orb and the liquid hand-off), `devmode/` |
 | `site/src/jsMain/resources/markdown/blog/` | Blog posts (front matter: `title`, `date`, `description`, `tags`, optional `draft: true`) |
 | `site/src/jsMain/resources/public/` | CSS, images, `resume.pdf` |
 | `site/knowledge/profile.md` | What Ask Ritwik knows besides the posts (mirrors `Profile.kt`) |

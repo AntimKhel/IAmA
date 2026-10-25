@@ -3572,13 +3572,11 @@ button.rr-search:hover {
 
 :root {
   --askfab-bg: rgba(13, 16, 22, 0.84);
-  --askfab-face: rgba(13, 16, 22, 0.94);
   --askfab-rainbow: conic-gradient(from var(--ask-angle), #3ddc84, #00bfa5, #2f6bff, #7c4dff, #ff3d7f, #ffb13d, #3ddc84);
 }
 
 html.silk-light {
   --askfab-bg: rgba(255, 255, 255, 0.9);
-  --askfab-face: rgba(255, 255, 255, 0.97);
 }
 
 @keyframes ask-spin { to { --ask-angle: 360deg; } }
@@ -3593,73 +3591,6 @@ html.silk-light {
   to { opacity: 1; transform: none; }
 }
 
-/* ---- A: bottom bar ---- */
-
-.askfab-bar {
-  position: fixed;
-  z-index: 180;
-  left: 50%;
-  bottom: max(18px, env(safe-area-inset-bottom));
-  width: min(580px, calc(100vw - 24px));
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 6px 6px 7px;
-  border-radius: 999px;
-  border: 1.5px solid transparent;
-  background: var(--askfab-rainbow) border-box; /* shows as the ring; ::after covers the inside */
-  box-shadow: 0 20px 50px -18px rgba(124, 77, 255, 0.6), 0 8px 30px -12px rgba(61, 220, 132, 0.45);
-  transform: translate(-50%, 150%);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.7s var(--ease-spring), opacity 0.4s;
-  animation: ask-spin 5s linear infinite;
-}
-
-.askfab-bar.on {
-  transform: translate(-50%, 0);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.askfab-bar::before,
-.askfab-bar::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  border-radius: inherit;
-}
-
-.askfab-bar::before {
-  /* soft rainbow halo around the pill */
-  inset: 4px;
-  background: var(--askfab-rainbow);
-  filter: blur(18px);
-  opacity: 0.5;
-  animation: ask-spin 5s linear infinite;
-}
-
-.askfab-bar::after {
-  /* the pill's face, painted over the halo so only its edges glow */
-  inset: 0;
-  background: var(--askfab-face);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-}
-
-.askfab-spark {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  color: #04140b;
-  font-size: 15px;
-  background: radial-gradient(circle at 30% 25%, #c9ffe2, #3ddc84 40%, #00bfa5 70%, #7c4dff);
-}
-
-.askfab-label,
 .askfab-chip .t {
   flex: none;
   font: 700 14px var(--font-display);
@@ -3672,52 +3603,11 @@ html.silk-light {
   animation: ask-shimmer 3.5s linear infinite;
 }
 
-.askfab-bar input {
-  flex: 1;
-  min-width: 0;
-  height: 40px;
-  border: none;
-  outline: none;
-  background: none;
-  color: var(--text);
-  font: 500 15px var(--font-body);
-}
-
-.askfab-bar input::placeholder {
-  color: var(--text-2);
-  opacity: 1;
-}
-
-.askfab-send {
-  flex: none;
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 50%;
-  color: #04140b;
-  background: linear-gradient(135deg, #6cf0a6, #3ddc84);
-  cursor: pointer;
-  transition: transform 0.3s var(--ease-spring);
-}
-
-.askfab-send:hover {
-  transform: scale(1.08);
-}
-
-html.has-askbar body {
-  padding-bottom: 84px;
-}
-
-@media (max-width: 480px) {
-  .askfab-label { display: none; }
-  .askfab-bar input { font-size: 16px; } /* no zoom-on-focus on iOS */
-}
-
 /* ---- B: corner orb ---- */
 
 .askfab-orb-wrap {
   position: fixed;
-  z-index: 180;
+  z-index: 190;
   right: max(20px, env(safe-area-inset-right));
   bottom: max(20px, env(safe-area-inset-bottom));
   display: flex;
@@ -3734,6 +3624,10 @@ html.has-askbar body {
   opacity: 1;
   transform: none;
   pointer-events: auto;
+}
+
+.askfab-orb-wrap.instant {
+  transition: none;
 }
 
 .askfab-orb {
@@ -3813,22 +3707,27 @@ html.has-askbar body {
   cursor: pointer;
 }
 
-/* ---- C: nav chip ---- */
+/* ---- the nav chip (docked) ---- */
 
 .askfab-chip {
+  flex: none;
+  /* explicit widths so contracting into a dot can animate */
+  width: 344px;
   height: 38px;
-  min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 0 14px;
+  overflow: hidden;
+  white-space: nowrap;
   border-radius: 999px;
   border: 1.5px solid transparent;
   background: linear-gradient(var(--askfab-bg), var(--askfab-bg)) padding-box, var(--askfab-rainbow) border-box;
   color: var(--text);
   cursor: pointer;
   animation: ask-spin 4s linear infinite;
-  transition: transform 0.3s var(--ease-spring);
+  transition: width 0.3s var(--ease-out), padding 0.3s var(--ease-out), margin 0.3s var(--ease-out),
+    border-width 0.3s, opacity 0.25s, transform 0.3s var(--ease-spring);
 }
 
 .askfab-chip:hover {
@@ -3836,21 +3735,51 @@ html.has-askbar body {
 }
 
 .askfab-chip i {
+  flex: none;
   color: var(--g1);
 }
 
 .askfab-chip .q {
+  flex: none;
   width: 230px;
   padding-left: 9px;
   border-left: 1px solid var(--stroke-2);
   overflow: hidden;
-  white-space: nowrap;
   text-align: left;
   color: var(--text-2);
   font: 500 13px var(--font-body);
 }
 
+/* contracting into the drop that leaves the nav, and gone while the orb is out */
+.askfab-chip.is-dot {
+  width: 38px;
+  padding: 0;
+  justify-content: center;
+}
+
+.askfab-chip.is-dot .t,
+.askfab-chip.is-dot .q,
+.askfab-chip.is-gone .t,
+.askfab-chip.is-gone .q {
+  display: none;
+}
+
+.askfab-chip.is-gone {
+  width: 0;
+  padding: 0;
+  margin-right: -4px; /* swallow the nav's gap too */
+  border-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.askfab-chip.is-hidden {
+  opacity: 0;
+  transition: none;
+}
+
 @media (max-width: 1180px) {
+  .askfab-chip { width: 104px; }
   .askfab-chip .q { display: none; }
 }
 
@@ -3859,7 +3788,32 @@ html.has-askbar body {
   .askfab-chip .t { display: none; }
 }
 
+/* ---- the liquid hand-off between chip and orb ---- */
+
+.askfab-liquid {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  pointer-events: none;
+}
+
+.askfab-goo {
+  position: absolute;
+  inset: 0;
+  filter: url(#askfab-goo);
+}
+
+.askfab-goo .blob {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #c9ffe2, #3ddc84 38%, #00bfa5 62%, #7c4dff);
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .askfab-bar, .askfab-bar::before, .askfab-orb, .askfab-orb .ring, .askfab-bubble, .askfab-chip,
-  .askfab-label, .askfab-chip .t { animation: none; }
+  .askfab-orb, .askfab-orb .ring, .askfab-bubble, .askfab-chip, .askfab-chip .t { animation: none; }
 }
