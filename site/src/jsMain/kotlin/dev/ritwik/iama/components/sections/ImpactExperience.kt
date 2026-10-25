@@ -13,7 +13,7 @@ import org.jetbrains.compose.web.dom.*
 private class Metric(val value: Int, val prefix: String = "", val suffix: String, val label: String, val note: String, val bar: Double)
 
 private val metrics = listOf(
-    Metric(500, suffix = "M+", label = "MyJio installs", note = "Google Play, one of India's most-installed apps", bar = 1.0),
+    Metric(1, suffix = "B+", label = "MyJio installs", note = "Google Play, one of India's most-installed apps", bar = 1.0),
     Metric(7, suffix = "+ yrs", label = "Android at scale", note = "Jio · HSBC · Oxigen", bar = 0.7),
     Metric(6, suffix = "", label = "Products & platforms", note = "MyJio, Agentic, JioFinance, JioMart, JioAirSync, SDKs", bar = 0.6),
     Metric(82, suffix = "%", label = "R8 obfuscation", note = "up from 24% after untangling keep rules", bar = 0.82),

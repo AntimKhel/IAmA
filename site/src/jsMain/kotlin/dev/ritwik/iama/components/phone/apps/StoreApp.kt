@@ -24,7 +24,7 @@ fun StoreApp() {
             }
             Div({ classes("rr-a-banner") }) {
                 Div({ classes("k") }) { Text("Combined reach") }
-                Div({ classes("v") }) { Text("610M+ installs") }
+                Div({ classes("v") }) { Text("1.1B+ installs") }
                 Div({ classes("s") }) { Text("MyJio · JioMart · JioFinance on Google Play") }
             }
             Heading("Apps & platforms")
@@ -40,7 +40,7 @@ fun StoreApp() {
                         Div({ classes("rr-a-sub") }) { Text(p.tagline) }
                         Div({ classes("rr-a-meta") }) {
                             when {
-                                p.badge != null -> Span({ classes("rr-a-gold") }) { I({ classes("fa-solid", "fa-trophy") }); Text(" ${p.badge}") }
+                                p.badge != null -> Span({ classes("rr-a-${p.badge.tone}") }) { I({ classes(*p.badge.icon.split(" ").toTypedArray()) }); Text(" ${p.badge.text}") }
                                 p.rating != null -> Text("${p.rating} ★ · ${p.installs} installs")
                                 else -> Text(p.role)
                             }
@@ -80,7 +80,7 @@ private fun ProductPage(p: Product, onBack: () -> Unit) {
                 Div({ classes("rr-a-ptitle") }) { Text(p.name) }
                 Div({ classes("rr-a-sub") }) { Text(p.tagline) }
                 if (p.badge != null) {
-                    Div({ classes("rr-a-gold", "pill") }) { I({ classes("fa-solid", "fa-trophy") }); Text(" ${p.badge}") }
+                    Div({ classes("rr-a-${p.badge.tone}", "pill") }) { I({ classes(*p.badge.icon.split(" ").toTypedArray()) }); Text(" ${p.badge.text}") }
                 }
             }
         }

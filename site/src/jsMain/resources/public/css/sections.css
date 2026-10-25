@@ -413,6 +413,13 @@ html.silk-light .v-b .sh-title {
   white-space: nowrap;
 }
 
+/* MyJio's own navy (sampled from the app) */
+.pa-badge.navy {
+  color: #fff;
+  background: linear-gradient(120deg, #0f3dc8, #08279e);
+  box-shadow: 0 6px 18px -8px rgba(8, 39, 158, 0.7);
+}
+
 .pa-badge.soft {
   color: var(--text-2);
   background: var(--surface-2);

@@ -26,7 +26,7 @@ fun ProductsSection() {
 private fun openProduct(p: Product, el: Element?) = PhoneState.open(Apps.products, AppHost.FULL, el, p)
 
 private fun Product.stat(): String = when {
-    badge != null -> badge
+    badge != null -> badge.text
     installs != null -> "$installs installs · ★ $rating"
     else -> role
 }
@@ -57,7 +57,7 @@ private fun ProductsMaterial() {
                         Div({ classes("pa-glow") })
                         Div({ classes("pa-top") }) {
                             Icon(p, "pa-icon")
-                            if (p.badge != null) Span({ classes("pa-badge") }) { I({ classes("fa-solid", "fa-trophy") }); Text(" ${p.badge}") }
+                            if (p.badge != null) Span({ classes("pa-badge", p.badge.tone) }) { I({ classes(*p.badge.icon.split(" ").toTypedArray()) }); Text(" ${p.badge.text}") }
                             else if (p.installs != null) Span({ classes("pa-badge", "soft") }) { Text("${p.installs} · ★ ${p.rating}") }
                         }
                         H3({ classes("pa-name") }) { Text(p.name) }

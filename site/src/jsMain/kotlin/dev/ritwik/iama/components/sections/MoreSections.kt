@@ -125,7 +125,7 @@ fun SkillsSection() {
                             Div({ classes("nf-rule") }) { Text("-".repeat(22)) }
                             NfRow("Role", Profile.headline)
                             NfRow("Uptime", "${Profile.yearsOfExperience} years shipping Android")
-                            NfRow("Host", "MyJio · 500M+ installs")
+                            NfRow("Host", "MyJio · 1B+ installs")
                             skillCategories.forEach { NfRow(it.name, it.skills.joinToString(", ")) }
                             Div({ classes("nf-colors") }) {
                                 listOf("#ff5f57", "#febc2e", "#4dffa0", "#58d6ff", "#82aaff", "#c792ea", "#e8fff1").forEach { c ->

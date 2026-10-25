@@ -35,7 +35,7 @@ object Profile {
 data class Stat(val value: String, val label: String, val icon: String)
 
 val heroStats = listOf(
-    Stat("500M+", "installs on MyJio", "fa-brands fa-google-play"),
+    Stat("1B+", "installs on MyJio", "fa-brands fa-google-play"),
     Stat("7+ yrs", "building Android at scale", "fa-brands fa-android"),
     Stat("Skoch Gold", "2026 · for JioAirSync", "fa-solid fa-trophy"),
 )
@@ -126,6 +126,9 @@ val educationList = listOf(
 // Products — public facts only (Play Store listings, résumé). No internal details.
 // ---------------------------------------------------------------------------
 
+/** Pill on a product card: an award (gold trophy) or a milestone in the product's own colours. */
+data class Badge(val text: String, val icon: String = "fa-solid fa-trophy", val tone: String = "gold")
+
 data class Product(
     val id: String,
     val name: String,
@@ -141,7 +144,7 @@ data class Product(
     val url: String? = null,
     val installs: String? = null,
     val rating: String? = null,
-    val badge: String? = null,
+    val badge: Badge? = null,
     val screenshots: List<String> = emptyList(),
 )
 
@@ -164,7 +167,8 @@ val products = listOf(
         icon = "fa-solid fa-mobile-screen-button",
         iconImage = "/images/products/myjio/icon.webp",
         url = "https://play.google.com/store/apps/details?id=com.jio.myjio",
-        installs = "500M+", rating = "4.5",
+        installs = "1B+", rating = "4.5",
+        badge = Badge("1 Billion installs", icon = "fa-brands fa-google-play", tone = "navy"),
         screenshots = shots("myjio", 1, 2, 4, 7, 3, 5, 6),
     ),
     Product(
@@ -175,7 +179,7 @@ val products = listOf(
         myWork = "Architected an agentic chatbot that automates complex user tasks inside MyJio",
         highlights = listOf(
             "Agentic workflows that plan and execute multi-step tasks",
-            "LLM integration inside a 500M+ install app",
+            "LLM integration inside a 1B+ install app",
         ),
         tech = listOf("LLMs", "Agentic AI", "Android"),
         accent = "#7c4dff", accent2 = "#ff3d7f",
@@ -231,7 +235,7 @@ val products = listOf(
         tech = listOf("React Native", "Kotlin", "OTA"),
         accent = "#ff8a3d", accent2 = "#ff3d7f",
         icon = "fa-solid fa-cloud-arrow-down",
-        badge = "Skoch Award 2026 · Gold",
+        badge = Badge("Skoch Award 2026 · Gold"),
     ),
     Product(
         id = "sdks",

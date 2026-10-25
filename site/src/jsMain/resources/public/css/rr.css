@@ -2541,6 +2541,21 @@ html.rr-tapped .rr-app .ico::before {
   border: 1px solid rgba(255, 201, 74, 0.35);
 }
 
+.rr-a-navy {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(120deg, #0f3dc8, #08279e);
+}
+
+.rr-a-navy.pill {
+  margin-top: 6px;
+  padding: 3px 9px;
+  font-size: 10.5px;
+}
+
 .rr-a-phead {
   display: flex;
   gap: 14px;
