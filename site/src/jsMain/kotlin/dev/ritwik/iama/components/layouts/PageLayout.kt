@@ -32,7 +32,6 @@ import kotlinx.browser.window
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import dev.ritwik.iama.components.phone.AppWindowHost
-import dev.ritwik.iama.components.ask.AskFloater
 import dev.ritwik.iama.components.recruiter.ContactSheet
 import dev.ritwik.iama.components.recruiter.Toast
 import dev.ritwik.iama.components.widgets.VisitorStats
@@ -88,7 +87,6 @@ fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
         }
         Footer(Modifier.fillMaxWidth())
     }
-    AskFloater()
     AppWindowHost(AppHost.FULL)
     DevModeHost()
     ContactSheet()

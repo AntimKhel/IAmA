@@ -3561,7 +3561,7 @@ button.rr-search:hover {
 }
 
 /* ==========================================================================
-   Ask AI floaters (bar / orb / nav chip): see components/ask/AskFloater.kt
+   Ask AI nav chip: see components/ask/AskChip.kt
    ========================================================================== */
 
 @property --ask-angle {
@@ -3580,15 +3580,35 @@ html.silk-light {
 }
 
 @keyframes ask-spin { to { --ask-angle: 360deg; } }
-@keyframes ask-float { 50% { transform: translateY(-5px); } }
-@keyframes ask-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(61, 220, 132, 0.55); }
-  70%, 100% { box-shadow: 0 0 0 18px rgba(61, 220, 132, 0); }
-}
 @keyframes ask-shimmer { to { background-position: 200% 0; } }
-@keyframes ask-pop {
-  from { opacity: 0; transform: translateY(8px) scale(0.92); }
-  to { opacity: 1; transform: none; }
+
+.askfab-chip {
+  flex: none;
+  /* explicit widths so widening past the hero can animate */
+  width: 106px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  background: linear-gradient(var(--askfab-bg), var(--askfab-bg)) padding-box, var(--askfab-rainbow) border-box;
+  color: var(--text);
+  cursor: pointer;
+  animation: ask-spin 4s linear infinite;
+  transition: width 0.45s var(--ease-out), transform 0.3s var(--ease-spring);
+}
+
+.askfab-chip:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+
+.askfab-chip i {
+  flex: none;
+  color: var(--g1);
 }
 
 .askfab-chip .t {
@@ -3603,142 +3623,6 @@ html.silk-light {
   animation: ask-shimmer 3.5s linear infinite;
 }
 
-/* ---- B: corner orb ---- */
-
-.askfab-orb-wrap {
-  position: fixed;
-  z-index: 190;
-  right: max(20px, env(safe-area-inset-right));
-  bottom: max(20px, env(safe-area-inset-bottom));
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  opacity: 0;
-  transform: translateY(24px) scale(0.6);
-  transform-origin: bottom right;
-  pointer-events: none;
-  transition: transform 0.7s var(--ease-spring), opacity 0.4s;
-}
-
-.askfab-orb-wrap.on {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-
-.askfab-orb-wrap.instant {
-  transition: none;
-}
-
-.askfab-orb {
-  position: relative;
-  flex: none;
-  width: 64px;
-  height: 64px;
-  border: none;
-  border-radius: 50%;
-  color: #04140b;
-  font-size: 23px;
-  cursor: pointer;
-  background: radial-gradient(circle at 30% 25%, #c9ffe2, #3ddc84 38%, #00bfa5 62%, #7c4dff);
-  box-shadow: 0 16px 40px -10px rgba(61, 220, 132, 0.75);
-  animation: ask-float 4s ease-in-out infinite, ask-pulse 2.6s ease-out infinite;
-}
-
-.askfab-orb .ring {
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  background: var(--askfab-rainbow);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
-  animation: ask-spin 3s linear infinite;
-}
-
-.askfab-bubble {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
-  max-width: 270px;
-  margin-bottom: 18px;
-  padding: 4px;
-  border-radius: 20px 20px 6px 20px;
-  border: 1.5px solid transparent;
-  background: linear-gradient(var(--askfab-bg), var(--askfab-bg)) padding-box, var(--askfab-rainbow) border-box;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.55);
-  animation: ask-pop 0.5s var(--ease-spring) both, ask-spin 5s linear infinite;
-}
-
-.askfab-bubble-q {
-  border: none;
-  background: none;
-  padding: 8px 4px 8px 10px;
-  text-align: left;
-  cursor: pointer;
-  color: var(--text);
-}
-
-.askfab-bubble-q .k {
-  display: block;
-  font: 600 10.5px var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--g1);
-}
-
-.askfab-bubble-q .q {
-  display: block;
-  margin-top: 3px;
-  font: 600 14.5px / 1.35 var(--font-body);
-  animation: ask-pop 0.45s var(--ease-out) both;
-}
-
-.askfab-bubble-x {
-  flex: none;
-  width: 26px;
-  height: 26px;
-  border: none;
-  border-radius: 50%;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-/* ---- the nav chip (docked) ---- */
-
-.askfab-chip {
-  flex: none;
-  /* explicit widths so contracting into a dot can animate */
-  width: 344px;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 14px;
-  overflow: hidden;
-  white-space: nowrap;
-  border-radius: 999px;
-  border: 1.5px solid transparent;
-  background: linear-gradient(var(--askfab-bg), var(--askfab-bg)) padding-box, var(--askfab-rainbow) border-box;
-  color: var(--text);
-  cursor: pointer;
-  animation: ask-spin 4s linear infinite;
-  transition: width 0.3s var(--ease-out), padding 0.3s var(--ease-out), margin 0.3s var(--ease-out),
-    border-width 0.3s, opacity 0.25s, transform 0.3s var(--ease-spring);
-}
-
-.askfab-chip:hover {
-  transform: translateY(-1px) scale(1.03);
-}
-
-.askfab-chip i {
-  flex: none;
-  color: var(--g1);
-}
-
 .askfab-chip .q {
   flex: none;
   width: 230px;
@@ -3748,72 +3632,35 @@ html.silk-light {
   text-align: left;
   color: var(--text-2);
   font: 500 13px var(--font-body);
-}
-
-/* contracting into the drop that leaves the nav, and gone while the orb is out */
-.askfab-chip.is-dot {
-  width: 38px;
-  padding: 0;
-  justify-content: center;
-}
-
-.askfab-chip.is-dot .t,
-.askfab-chip.is-dot .q,
-.askfab-chip.is-gone .t,
-.askfab-chip.is-gone .q {
-  display: none;
-}
-
-.askfab-chip.is-gone {
-  width: 0;
-  padding: 0;
-  margin-right: -4px; /* swallow the nav's gap too */
-  border-width: 0;
   opacity: 0;
-  pointer-events: none;
+  transition: opacity 0.25s;
 }
 
-.askfab-chip.is-hidden {
-  opacity: 0;
-  transition: none;
+.askfab-chip.is-expanded {
+  width: 346px;
 }
 
+.askfab-chip.is-expanded .q {
+  opacity: 1;
+  transition-delay: 0.2s;
+}
+
+.askfab-chip.is-expanded .q:hover {
+  color: var(--text);
+}
+
+/* no room for prompts in narrower navs */
 @media (max-width: 1180px) {
-  .askfab-chip { width: 104px; }
+  .askfab-chip.is-expanded { width: 106px; }
   .askfab-chip .q { display: none; }
 }
 
 @media (max-width: 520px) {
-  .askfab-chip { width: 38px; padding: 0; justify-content: center; }
+  .askfab-chip,
+  .askfab-chip.is-expanded { width: 38px; padding: 0; justify-content: center; }
   .askfab-chip .t { display: none; }
 }
 
-/* ---- the liquid hand-off between chip and orb ---- */
-
-.askfab-liquid {
-  position: fixed;
-  inset: 0;
-  z-index: 210;
-  pointer-events: none;
-}
-
-.askfab-goo {
-  position: absolute;
-  inset: 0;
-  filter: url(#askfab-goo);
-}
-
-.askfab-goo .blob {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 25%, #c9ffe2, #3ddc84 38%, #00bfa5 62%, #7c4dff);
-  will-change: transform;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .askfab-orb, .askfab-orb .ring, .askfab-bubble, .askfab-chip, .askfab-chip .t { animation: none; }
+  .askfab-chip, .askfab-chip .t { animation: none; }
 }
