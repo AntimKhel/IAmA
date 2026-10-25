@@ -22,7 +22,7 @@ object Profile {
 
     // Contact — email is shown, phone is assembled at runtime from parts so simple scrapers miss it.
     const val email = "raj.ritwik96@gmail.com"
-    val phoneParts = listOf("+91", "70042", "32185")
+    val phoneParts = listOf("+91", "70042", "31285")
     const val linkedIn = "https://www.linkedin.com/in/ritwik787/"
     const val github = "https://github.com/AntimKhel"
     const val resumePath = "/resume.pdf"
