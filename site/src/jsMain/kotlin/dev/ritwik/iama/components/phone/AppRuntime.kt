@@ -6,11 +6,14 @@ import dev.ritwik.iama.components.phone.apps.AwardsApp
 import dev.ritwik.iama.components.phone.apps.BlogApp
 import dev.ritwik.iama.components.phone.apps.ContactApp
 import dev.ritwik.iama.components.phone.apps.GuestbookApp
+import dev.ritwik.iama.components.phone.apps.ResumeApp
+import dev.ritwik.iama.components.phone.apps.SearchApp
 import dev.ritwik.iama.components.phone.apps.SkillsApp
 import dev.ritwik.iama.components.phone.apps.StoreApp
 import dev.ritwik.iama.components.phone.apps.WorkApp
 import kotlinx.browser.document
 import kotlinx.browser.window
+import dev.ritwik.iama.util.haptic
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.Element
@@ -19,7 +22,7 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 
 /** Screens that open as in-phone apps. */
-enum class AppScreen { WORK, STORE, BLOG, ABOUT, SKILLS, AWARDS, CONTACT, GUESTBOOK }
+enum class AppScreen { WORK, STORE, BLOG, ABOUT, SKILLS, AWARDS, CONTACT, GUESTBOOK, SEARCH, RESUME }
 
 /** Where an app window is drawn: inside the hero's phone mockup, or over the whole viewport. */
 enum class AppHost { PHONE, FULL }
@@ -43,6 +46,7 @@ object PhoneState {
         private set
 
     fun open(app: LauncherApp, host: AppHost, clicked: Element?, payload: Any? = null) {
+        haptic()
         this.payload = payload
         origin = clicked?.let { originOf(it, host) }
         this.host = host
@@ -51,7 +55,10 @@ object PhoneState {
     }
 
     fun close() {
-        if (app != null) closing = true
+        if (app != null) {
+            haptic(6)
+            closing = true
+        }
     }
 
     internal fun finishClose() {
@@ -93,6 +100,13 @@ fun AppWindowHost(host: AppHost) {
     DisposableEffect(Unit) {
         val onKey: (Event) -> Unit = { if ((it as KeyboardEvent).key == "Escape") PhoneState.close() }
         window.addEventListener("keydown", onKey)
+        // Keyboard: move focus into the app (its search box, else its back button) and restore it on close.
+        val opener = document.activeElement as? HTMLElement
+        window.setTimeout({
+            val win = document.querySelector(".rr-appwin:not(.is-closing)")
+            ((win?.querySelector("[data-autofocus]") ?: win?.querySelector(".rr-appbar-back")) as? HTMLElement)?.focus()
+        }, 60)
+
         // An open app is modal: the page underneath stops scrolling until it closes.
         val root = document.documentElement as? HTMLElement
         val previousOverflow = root?.style?.getPropertyValue("overflow") ?: ""
@@ -100,6 +114,7 @@ fun AppWindowHost(host: AppHost) {
         onDispose {
             window.removeEventListener("keydown", onKey)
             root?.style?.setProperty("overflow", previousOverflow)
+            if (opener != null && document.body?.contains(opener) == true) opener.focus()
         }
     }
 
@@ -132,6 +147,8 @@ fun AppWindowHost(host: AppHost) {
                     AppScreen.AWARDS -> AwardsApp()
                     AppScreen.CONTACT -> ContactApp()
                     AppScreen.GUESTBOOK -> GuestbookApp()
+                    AppScreen.SEARCH -> SearchApp()
+                    AppScreen.RESUME -> ResumeApp()
                 }
             }
             // Splash: the icon's colour fills the window, then fades as content appears.

@@ -54,9 +54,12 @@ private val exitLines = listOf(
     "✓ welcome back",
 )
 
-/** Small quirky switch at the very end of the home page + the transition overlay. */
+/**
+ * Lives in the page layout: keeps the html class in sync, listens for the backtick shortcut, and
+ * plays the sudo transition, so dev mode can be toggled from any page (switch, search, Build number).
+ */
 @Composable
-fun DevModeSwitch() {
+fun DevModeHost() {
     LaunchedEffect(Unit) { document.documentElement?.classList?.toggle("dev-mode", DevMode.enabled) }
 
     DisposableEffect(Unit) {
@@ -69,6 +72,12 @@ fun DevModeSwitch() {
         onDispose { window.removeEventListener("keydown", onKey) }
     }
 
+    if (DevMode.transitioning) DevModeTransition()
+}
+
+/** Small quirky switch at the very end of the home page. */
+@Composable
+fun DevModeSwitch() {
     Div({ classes("dev-switch-wrap") }) {
         Button({
             classes("dev-switch")
@@ -84,8 +93,6 @@ fun DevModeSwitch() {
             Text(if (DevMode.enabled) "You're seeing the source of truth. Press ` to go back." else "For engineers who'd rather read a terminal.")
         }
     }
-
-    if (DevMode.transitioning) DevModeTransition()
 }
 
 @Composable

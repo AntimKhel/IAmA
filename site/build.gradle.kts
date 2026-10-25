@@ -26,6 +26,8 @@ kobweb {
         index {
             // R monogram (same mark as the boot animation); favicon.ico / apple-touch-icon added below.
             faviconPath.set("/favicon.svg")
+            // Let the pre-rendered page paint before the app bundle has downloaded and run.
+            scriptAttributes.put("defer", "")
             description.set("Ritwik Raj Srivastava — Software Engineer & Tech Lead, Android & AI. 7+ years shipping MyJio, JioFinance and JioMart; agentic AI, AI-native SDLC, Compose and React Native.")
 
             // Copy into a local so the head lambda captures a String, not the build script
@@ -56,6 +58,8 @@ kobweb {
                                 var cl = document.documentElement.classList;
                                 cl.remove('silk-light', 'silk-dark');
                                 cl.add(dark ? 'silk-dark' : 'silk-light');
+                                /* This page is the pre-painted snapshot: skip entrances Compose would replay (blog.css). */
+                                cl.add('rr-snap');
                                 var home = l.pathname.replace(/\/+$/, '') === '$base';
                                 var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
                                 if (!home || reduce || sessionStorage.getItem('rr-booted')) return;
@@ -73,10 +77,18 @@ kobweb {
 
                 link(rel = "preconnect", href = "https://fonts.googleapis.com")
                 link(rel = "preconnect", href = "https://fonts.gstatic.com") { attributes["crossorigin"] = "" }
-                link(
-                    rel = "stylesheet",
-                    href = "https://fonts.googleapis.com/css2?family=Outfit:wght@200..900&family=Inter:wght@300..800&family=JetBrains+Mono:wght@400;500;700&display=swap"
-                )
+                // Web fonts and icons load without blocking the first paint (text shows in a system font
+                // for a moment, then swaps). media=print + onload is the standard non-blocking stylesheet trick.
+                val asyncCss = { href: String ->
+                    link(rel = "stylesheet", href = href) {
+                        attributes["media"] = "print"
+                        // Skipped while exporting, or the snapshot would bake in the swapped (render-blocking) state.
+                        attributes["onload"] = "if(location.search.indexOf('_kobwebIsExporting')<0)this.media='all'"
+                    }
+                }
+                link(rel = "preconnect", href = "https://cdnjs.cloudflare.com") { attributes["crossorigin"] = "" }
+                asyncCss("https://fonts.googleapis.com/css2?family=Outfit:wght@200..900&family=Inter:wght@300..800&family=JetBrains+Mono:wght@400;500;700&display=swap")
+                asyncCss("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css")
                 link(rel = "stylesheet", href = "$base/css/rr.css?v=$assetVersion")
                 link(rel = "stylesheet", href = "$base/css/sections.css?v=$assetVersion")
                 link(rel = "stylesheet", href = "$base/css/blog.css?v=$assetVersion")
@@ -197,7 +209,6 @@ kotlin {
             implementation(libs.compose.html.core)
             implementation(libs.kobweb.core)
             implementation(libs.kobweb.silk)
-            implementation(libs.silk.icons.fa)
             implementation(libs.kobwebx.markdown)
         }
     }

@@ -11,7 +11,8 @@ import org.jetbrains.compose.web.dom.*
 /** Reader app: post list, and the real markdown post rendered in-app. */
 @Composable
 fun BlogApp() {
-    var reading by remember { mutableStateOf<BlogEntry?>(null) }
+    // Search can deep-link straight into a post.
+    var reading by remember { mutableStateOf(PhoneState.payload as? BlogEntry) }
     val router = rememberPageContext().router
     val post = reading
 

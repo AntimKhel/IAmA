@@ -6,6 +6,7 @@ import dev.ritwik.iama.data.Backend
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.util.HtmlState
 import dev.ritwik.iama.util.UiState
+import dev.ritwik.iama.util.haptic
 import dev.ritwik.iama.util.goToSection
 import dev.ritwik.iama.util.resumeHref
 import org.jetbrains.compose.web.attributes.ATarget
@@ -41,7 +42,8 @@ object Apps {
     val blog = LauncherApp("Blog", "fa-solid fa-newspaper", "#00bfa5", "#2f6bff", AppAction.Open(AppScreen.BLOG))
     val about = LauncherApp("About", "fa-solid fa-user-astronaut", "#3ddc84", "#00bfa5", AppAction.Open(AppScreen.ABOUT))
     val contact = LauncherApp("Contact", "fa-solid fa-address-card", "#ff3d7f", "#7c4dff", AppAction.Open(AppScreen.CONTACT))
-    val resume = LauncherApp("Résumé", "fa-solid fa-file-arrow-down", "#6cf0a6", "#00bfa5", AppAction.Resume)
+    val resume = LauncherApp("Résumé", "fa-solid fa-file-lines", "#6cf0a6", "#00bfa5", AppAction.Open(AppScreen.RESUME))
+    val search = LauncherApp("Search", "fa-solid fa-magnifying-glass", "#2f6bff", "#7c4dff", AppAction.Open(AppScreen.SEARCH))
     val linkedIn = LauncherApp("LinkedIn", "fa-brands fa-linkedin-in", "#0a66c2", "#2f6bff", AppAction.External(Profile.linkedIn))
     val github = LauncherApp("GitHub", "fa-brands fa-github", "#3b434f", "#151a21", AppAction.External(Profile.github))
     val skills = LauncherApp("Skills", "fa-solid fa-code", "#7c4dff", "#b06bff", AppAction.Open(AppScreen.SKILLS))
@@ -57,6 +59,9 @@ object Apps {
     private val lastSlot get() = if (Backend.enabled) guestbook else github
 
     val grid get() = listOf(work, products, blog, about, contact, resume, linkedIn, lastSlot)
+
+    /** Every app, for launcher search. */
+    val all get() = listOfNotNull(work, products, blog, about, skills, awards, contact, resume, guestbook.takeIf { Backend.enabled }, linkedIn, github)
     val desk get() = listOf(work, products, blog, about, skills, awards, contact, resume, linkedIn, lastSlot)
     val dock = listOf(phone, mail, play, browser)
 }
@@ -88,7 +93,7 @@ fun AppIcon(app: LauncherApp, index: Int = 0, hint: Boolean = false) {
                 attr("rel", "noopener")
             }
             attr("aria-label", app.label)
-            onClick { HtmlState.markTapped() }
+            onClick { HtmlState.markTapped(); haptic() }
         }) { content() }
 
         AppAction.Resume -> A(resumeHref, {
@@ -125,14 +130,22 @@ fun Dock(withSearch: Boolean = true, index: Int = 0) {
         Div({ classes("row") }) {
             Apps.dock.forEachIndexed { i, app -> AppIcon(app, index + i) }
         }
-        if (withSearch) {
-            Div({ classes("rr-search") }) {
-                Span({ classes("g") }) { Text("R") }
-                Text("Search Ritwik's work…")
-                Span({ style { property("margin-left", "auto") } }) {
-                    I({ classes("fa-solid", "fa-microphone") })
-                }
-            }
-        }
+        if (withSearch) SearchBar("Search Ritwik's work…")
+    }
+}
+
+/** The launcher's search pill: opens the Search app, growing out of the bar itself. */
+@Composable
+fun SearchBar(label: String) {
+    val host = LocalAppHost.current
+    Button({
+        classes("rr-search")
+        attr("data-origin", "")
+        attr("aria-keyshortcuts", "Meta+K Control+K")
+        onClick { e -> PhoneState.open(Apps.search, host, e.target as? Element) }
+    }) {
+        Span({ classes("g"); attr("aria-hidden", "true") }) { Text("R") }
+        Span({ classes("rr-search-label") }) { Text(label) }
+        Span({ classes("rr-search-kbd"); attr("aria-hidden", "true") }) { Text("⌘K") }
     }
 }

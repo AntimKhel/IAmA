@@ -1821,6 +1821,11 @@ html.rr-booting {
     filter: none;
   }
 
+  /* the scene doesn't pin on phones, so scrolling must not disable the copy (or the home screen in it) */
+  .rr-scene.is-moving .rr-copy {
+    pointer-events: auto;
+  }
+
   .rr-name {
     font-size: clamp(2.9rem, 15vw, 4.6rem);
   }
@@ -2472,6 +2477,7 @@ html.rr-tapped .rr-app .ico::before {
   text-align: left;
   cursor: pointer;
   font: inherit;
+  text-decoration: none;
   transition: background 0.2s;
 }
 
@@ -3142,6 +3148,19 @@ html.silk-light ::selection {
   color: #04261a;
 }
 
+/* Visually hidden, still read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Keyboard users: first Tab reveals a skip link past the nav and hero choreography. */
 .skip-link {
   position: fixed;
@@ -3163,4 +3182,165 @@ html.silk-light ::selection {
 
 #content:focus {
   outline: none;
+}
+
+/* ==========================================================================
+   Launcher search pill (now a real button) + Search / Résumé / About apps
+   ========================================================================== */
+
+button.rr-search {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font: 500 12px var(--font-body);
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s;
+}
+
+button.rr-search:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.6);
+}
+
+.rr-search-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rr-search-kbd {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font: 600 10px var(--font-mono);
+  color: #5b6472;
+  background: rgba(16, 24, 40, 0.08);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .rr-search-kbd {
+    display: none;
+  }
+}
+
+.rr-desk-bottom .rr-search {
+  font-size: 14px;
+}
+
+.rr-search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--muted);
+}
+
+.rr-search-field:focus-within {
+  border-color: color-mix(in srgb, var(--g1) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--g1) 18%, transparent);
+}
+
+.rr-search-field input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  color: #fff;
+  font: 500 13px var(--font-body);
+}
+
+.rr-search-field input::-webkit-search-cancel-button {
+  filter: invert(1);
+}
+
+.rr-search-results .rr-a-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.rr-search-results .rr-a-row.on {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.rr-search-kind {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font: 600 9.5px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #aab3bf;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.rr-a-picon.small {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  color: #dfe5ec;
+}
+
+.cv-head {
+  margin: 16px 2px 4px;
+}
+
+.cv-item {
+  margin: 10px 0 14px;
+}
+
+.cv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.cv-skill {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 10px;
+  margin: 6px 2px;
+  color: #c9d0da;
+}
+
+.cv-k {
+  font-weight: 600;
+  color: #fff;
+}
+
+.about-build {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--stroke);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.about-build:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@container (min-width: 560px) {
+  .rr-search-field { height: 52px; }
+  .rr-search-field input { font-size: 16px; }
+  .rr-a-picon.small { width: 44px; height: 44px; font-size: 18px; }
+  .rr-search-kind { font-size: 11px; }
+  .cv-skill { grid-template-columns: 160px minmax(0, 1fr); }
 }

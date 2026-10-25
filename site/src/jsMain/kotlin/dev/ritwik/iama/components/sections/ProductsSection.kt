@@ -67,7 +67,13 @@ private fun ProductsMaterial() {
                             Div({ classes("pa-reel") }) {
                                 Div({ classes("pa-reel-track") }) {
                                     (p.screenshots + p.screenshots).forEach { src ->
-                                        Img(BasePath.prependTo(src), "") { classes("pa-shot"); attr("loading", "lazy") }
+                                        Img(BasePath.prependTo(src), "") {
+                                            classes("pa-shot")
+                                            attr("loading", "lazy")
+                                            attr("decoding", "async")
+                                            attr("width", "506")
+                                            attr("height", "900")
+                                        }
                                     }
                                 }
                             }

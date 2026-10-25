@@ -9,6 +9,7 @@ import dev.ritwik.iama.components.phone.Apps
 import dev.ritwik.iama.components.phone.Dock
 import dev.ritwik.iama.components.phone.PhoneFrame
 import dev.ritwik.iama.components.phone.PhoneState
+import dev.ritwik.iama.components.phone.SearchBar
 import dev.ritwik.iama.components.phone.rememberClock
 import dev.ritwik.iama.components.widgets.CountUp
 import dev.ritwik.iama.components.widgets.VisitorStats
@@ -193,7 +194,9 @@ private fun HeroCopy() {
 
         Div({ classes("rr-roles", "rr-anim"); style { property("--d", "0.45s") } }) {
             Span({ classes("lead") }) { Text("I'm your next") }
-            Span({ classes("rr-rotator"); attr("aria-label", Profile.roles.joinToString(", ")) }) {
+            // Screen readers get the roles as plain text; the animated copies are hidden from them.
+            Span({ classes("sr-only") }) { Text(Profile.roles.joinToString(", ")) }
+            Span({ classes("rr-rotator"); attr("aria-hidden", "true") }) {
                 Profile.roles.forEachIndexed { i, role ->
                     Span({ style { property("--i", i); property("--n", Profile.roles.size) }; attr("aria-hidden", "true") }) { Text(role) }
                 }
@@ -412,11 +415,7 @@ private fun Desk() {
             Apps.desk.forEachIndexed { i, app -> AppIcon(app, i) }
         }
         Div({ classes("rr-desk-bottom") }) {
-            Div({ classes("rr-search") }) {
-                Span({ classes("g") }) { Text("R") }
-                Text("Tap an app — or keep scrolling for the full story")
-                Span({ style { property("margin-left", "auto") } }) { I({ classes("fa-solid", "fa-microphone") }) }
-            }
+            SearchBar("Search apps, products, posts — or keep scrolling")
         }
         Div({ classes("rr-desk-hint") }) {
             I({ classes("fa-solid", "fa-arrow-down") })

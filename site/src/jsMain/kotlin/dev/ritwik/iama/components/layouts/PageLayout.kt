@@ -2,6 +2,7 @@ package dev.ritwik.iama.components.layouts
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.ColumnScope
 import com.varabyte.kobweb.compose.ui.Alignment
@@ -22,7 +23,14 @@ import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 import dev.ritwik.iama.components.sections.Footer
 import dev.ritwik.iama.components.sections.NavHeader
+import androidx.compose.runtime.DisposableEffect
+import dev.ritwik.iama.components.devmode.DevModeHost
 import dev.ritwik.iama.components.phone.AppHost
+import dev.ritwik.iama.components.phone.Apps
+import dev.ritwik.iama.components.phone.PhoneState
+import kotlinx.browser.window
+import org.w3c.dom.events.Event
+import org.w3c.dom.events.KeyboardEvent
 import dev.ritwik.iama.components.phone.AppWindowHost
 import dev.ritwik.iama.components.recruiter.ContactSheet
 import dev.ritwik.iama.components.recruiter.Toast
@@ -41,6 +49,25 @@ fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
     val data = ctx.data.getValue<PageLayoutData>()
     // Visitor counter: registers this visit once per session, then reads the total (hidden if the API is down).
     LaunchedEffect(Unit) { VisitorStats.load() }
+
+    // Cmd/Ctrl+K opens launcher search from anywhere.
+    DisposableEffect(Unit) {
+        val onKey: (Event) -> Unit = { e ->
+            val k = e as KeyboardEvent
+            if ((k.metaKey || k.ctrlKey) && k.key.lowercase() == "k") {
+                k.preventDefault()
+                if (PhoneState.app == null) PhoneState.open(Apps.search, AppHost.FULL, null)
+            }
+        }
+        window.addEventListener("keydown", onKey)
+        onDispose { window.removeEventListener("keydown", onKey) }
+    }
+
+    // The first page arrived pre-painted (html.rr-snap skips its entrance animations); later pages animate.
+    val firstPath = remember { ctx.route.path }
+    LaunchedEffect(ctx.route.path) {
+        if (ctx.route.path != firstPath) document.documentElement?.classList?.remove("rr-snap")
+    }
 
     LaunchedEffect(data.title) {
         document.title = if (data.title == "Home") "Ritwik Raj Srivastava — Tech Lead · Android & AI"
@@ -61,6 +88,7 @@ fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
         Footer(Modifier.fillMaxWidth())
     }
     AppWindowHost(AppHost.FULL)
+    DevModeHost()
     ContactSheet()
     Toast()
 }

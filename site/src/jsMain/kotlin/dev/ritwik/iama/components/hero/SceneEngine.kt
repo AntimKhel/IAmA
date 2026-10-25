@@ -30,6 +30,7 @@ class SceneEngine(private val scene: HTMLElement) {
     private val reduced = prefersReducedMotion
 
     private var raf = 0
+    private var idleTimer = 0
     private var disposed = false
     private val written = HashMap<String, String>()
 
@@ -87,6 +88,7 @@ class SceneEngine(private val scene: HTMLElement) {
     fun dispose() {
         disposed = true
         window.cancelAnimationFrame(raf)
+        window.clearTimeout(idleTimer)
         window.removeEventListener("pointermove", onPointer, passive)
         document.removeEventListener("pointerleave", onLeave, passive)
         window.removeEventListener("resize", onResize, passive)
@@ -173,7 +175,12 @@ class SceneEngine(private val scene: HTMLElement) {
             }
         }
 
-        raf = window.requestAnimationFrame(::frame)
+        if (visible) {
+            raf = window.requestAnimationFrame(::frame)
+        } else {
+            // Off-screen: check back a few times a second instead of every frame.
+            idleTimer = window.setTimeout({ if (!disposed) raf = window.requestAnimationFrame(::frame) }, 250)
+        }
     }
 
     private fun write(prop: String, value: String) {

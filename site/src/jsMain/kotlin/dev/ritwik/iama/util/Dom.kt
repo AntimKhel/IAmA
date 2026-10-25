@@ -52,6 +52,12 @@ object HtmlState {
     }
 }
 
+/** A tiny tap "click" on touch devices that support vibration (Android); a no-op everywhere else. */
+fun haptic(ms: Int = 8) {
+    if (!window.matchMedia("(pointer: coarse)").matches) return
+    runCatching { window.navigator.asDynamic().vibrate?.invoke(ms) }
+}
+
 val prefersReducedMotion: Boolean
     get() = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 

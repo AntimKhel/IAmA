@@ -35,6 +35,9 @@ html.silk-light {
   color: var(--text);
   background: var(--bg);
   overflow-x: clip;
+  /* Below-the-fold sections aren't rendered until they approach the viewport. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1100px;
 }
 
 .wrap {
@@ -241,7 +244,7 @@ html.silk-light .v-b .sh-title {
 .term .kw { color: #c792ea; }
 .term .fn { color: #82aaff; }
 .term .str { color: #ffcb6b; }
-.term .cm { color: #5c6b77; font-style: italic; }
+.term .cm { color: #8796a5; font-style: italic; }
 .term .h { color: #fff; font-weight: 700; }
 .term .h2 { color: #4dffa0; font-weight: 600; margin-top: 12px; }
 .term .cursor { background: #4dffa0; }
@@ -313,12 +316,13 @@ html.silk-light .v-b .sh-title {
 /* A — bento of tilting glass cards */
 .pa-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
 .pa-card {
   perspective: 1100px;
+  min-width: 0; /* the screenshot reel is wider than the card; never let it widen the grid */
 }
 
 .pa-card.big {
@@ -463,6 +467,7 @@ html.silk-light .v-b .sh-title {
 }
 
 .pa-shot {
+  width: auto;
   height: clamp(220px, 26vw, 320px);
   border-radius: 16px;
   box-shadow: 0 16px 40px -18px rgba(0, 0, 0, 0.7);
@@ -528,7 +533,7 @@ html.silk-light .v-b .sh-title {
 /* A */
 .ia-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -811,7 +816,7 @@ html.silk-light .v-b .sh-title {
 .ra-track {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -1090,7 +1095,7 @@ html.silk-light .v-b .sh-title {
 /* A */
 .ba-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -1368,11 +1373,11 @@ html.silk-light .v-b .sh-title {
   .pa-grid,
   .ia-grid,
   .ba-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ra-track {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     row-gap: 34px;
   }
 
@@ -1381,7 +1386,7 @@ html.silk-light .v-b .sh-title {
   }
 
   .sa-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .sa-orbit {
@@ -1408,7 +1413,7 @@ html.silk-light .v-b .sh-title {
   }
 
   .nf-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1417,7 +1422,7 @@ html.silk-light .v-b .sh-title {
   .ia-grid,
   .ba-grid,
   .ra-track {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .pa-card.big,
@@ -1439,12 +1444,33 @@ html.silk-light .v-b .sh-title {
     grid-row: 2;
   }
 
+  /* Smaller orbit on phones: two rings that fit a ~340px column. */
   .sa-ring.r2 {
     display: none;
   }
 
+  .sa-ring {
+    --rad: 80px;
+  }
+
+  .sa-ring.r1 {
+    --rad: 128px;
+  }
+
+  .sa-core {
+    width: 68px;
+    height: 68px;
+    margin: -34px;
+    font-size: 28px;
+  }
+
+  .sa-chip > span {
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+
   .nf-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0;
   }
 }

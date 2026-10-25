@@ -110,6 +110,8 @@ fun NoteForm(style: FormStyle = FormStyle.CARD) {
     var token by remember { mutableStateOf<String?>(null) }
     var turnstileKey by remember { mutableStateOf(0) }
     var state by remember { mutableStateOf<SendState>(SendState.Idle) }
+    // Turnstile starts a challenge iframe; only arm it when the form is near the screen or focused.
+    var armed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     val canSend = name.isNotBlank() && message.isNotBlank() && token != null && state != SendState.Sending
@@ -136,6 +138,20 @@ fun NoteForm(style: FormStyle = FormStyle.CARD) {
     Form(attrs = {
         classes("gb-form", "gb-form-${style.name.lowercase()}")
         onSubmit { it.preventDefault(); send() }
+        onFocusIn { armed = true }
+        ref { el ->
+            val callback: (dynamic, dynamic) -> Unit = { entries, obs ->
+                if ((entries.unsafeCast<Array<dynamic>>()).any { it.isIntersecting == true }) {
+                    armed = true
+                    obs.disconnect()
+                }
+            }
+            val options: dynamic = js("({rootMargin: '300px'})")
+            @Suppress("UNUSED_VARIABLE") val cb = callback
+            val observer: dynamic = js("new IntersectionObserver(cb, options)")
+            observer.observe(el)
+            onDispose { observer.disconnect() }
+        }
     }) {
         if (state == SendState.Sent) {
             Div({ classes("gb-sent"); attr("role", "status") }) {
@@ -179,7 +195,11 @@ fun NoteForm(style: FormStyle = FormStyle.CARD) {
         }
 
         // Inside the phone the screen is narrower than Turnstile's 300px flexible minimum.
-        key(turnstileKey) { TurnstileBox(compact = style == FormStyle.COMPACT, onToken = { token = it }) }
+        if (armed) {
+            key(turnstileKey) { TurnstileBox(compact = style == FormStyle.COMPACT, onToken = { token = it }) }
+        } else {
+            Div({ classes("gb-turnstile") })
+        }
 
         val failure = state as? SendState.Failed
         if (failure != null) Div({ classes("gb-error"); attr("role", "alert") }) { Text(failure.message) }
