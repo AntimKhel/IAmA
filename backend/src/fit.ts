@@ -111,9 +111,12 @@ export function normalizeFit(raw: unknown, context: Chunk[]): FitResult | null {
     // A claimed match must point at something the site actually says.
     if (status !== "gap" && sources.length === 0) status = "gap";
     if (status === "gap") evidence = "";
+    // Buttons from the sections it cites; the general "at a glance" section only if nothing more specific was cited.
+    const cited = sources.map((n) => context[n - 1]);
+    const specific = cited.filter((c) => !c.core);
     const actions: string[] = [];
     if (status !== "gap") {
-      for (const n of sources) for (const a of context[n - 1].actions) if (!actions.includes(a)) actions.push(a);
+      for (const c of specific.length ? specific : cited) for (const a of c.actions) if (!actions.includes(a)) actions.push(a);
     }
     requirements.push({ requirement, status, evidence, actions: actions.slice(0, 3) });
   }

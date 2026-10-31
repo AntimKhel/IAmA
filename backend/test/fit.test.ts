@@ -54,6 +54,11 @@ describe("fit check: parsing and grounding", () => {
     const result = normalizeFit(JSON.parse(GOOD), context)!;
     const byReq = Object.fromEntries(result.requirements.map((r) => [r.requirement, r]));
     expect(byReq["Kotlin and Jetpack Compose"]).toMatchObject({ status: "match", actions: ["app:skills"] });
+    // citing the general section alongside a specific one: only the specific section's buttons
+    const both = normalizeFit({ requirements: [{ requirement: "Skills", status: "match", evidence: "x", sources: [1, 2] }] }, context)!;
+    expect(both.requirements[0].actions).toEqual(["app:skills"]);
+    const onlyCore = normalizeFit({ requirements: [{ requirement: "Years", status: "match", evidence: "x", sources: [1] }] }, context)!;
+    expect(onlyCore.requirements[0].actions).toEqual(["app:about", "resume"]);
     expect(byReq["React Native OTA updates"]).toMatchObject({ status: "match", actions: ["product:airsync", "post:ota-updates-react-native"] });
     expect(byReq["Kubernetes and Go"]).toMatchObject({ status: "gap", evidence: "", actions: [] });
     // claimed partial with no source: not grounded, so it's a gap

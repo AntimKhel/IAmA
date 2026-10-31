@@ -1,5 +1,6 @@
 -- One quota table for every rate-limited feature (Ask, Fit check, voice), per anonymous daily visitor hash.
--- Rows older than yesterday are deleted by the daily cron. Replaces ask_usage.
+-- Rows older than yesterday are deleted by the daily cron. Replaces ask_usage, which is left in place so the
+-- previous Worker keeps working until this one is deployed (drop it in a later migration).
 CREATE TABLE IF NOT EXISTS usage (
   day   TEXT NOT NULL,
   kind  TEXT NOT NULL,
@@ -7,7 +8,6 @@ CREATE TABLE IF NOT EXISTS usage (
   count INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (day, kind, hash)
 );
-DROP TABLE IF EXISTS ask_usage;
 
 -- Visitor map: unique visitors per country (the two-letter code Cloudflare reports, nothing else).
 CREATE TABLE IF NOT EXISTS countries (
