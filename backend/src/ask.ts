@@ -17,8 +17,9 @@ export interface Chunk {
 export const ASK_LIMITS = {
   question: 300,
   perVisitorPerDay: 20,
-  // Measured 5–11.5 neurons a question on glm-4.7-flash: 800 stays under the free 10,000 a day.
-  perDay: 800,
+  // Measured 5–11.5 neurons a question on glm-4.7-flash. Together with Fit check (40/day, ≤55 each) and voice
+  // (150/day, ~6 each), the worst case stays around the free 10,000 neurons a day.
+  perDay: 600,
   history: 2,
   historyAnswer: 600,
   chunkChars: 1400,
@@ -96,12 +97,18 @@ export interface KnowledgeFile {
 export interface Knowledge {
   chunks: Chunk[];
   index: Bm25;
+  /** Every published post, e.g. "r8-story" (blog reactions only accept these). */
+  slugs: Set<string>;
 }
 
 export function buildKnowledge(file: KnowledgeFile): Knowledge {
   const chunks = [...parseProfile(file.profile), ...file.posts.flatMap((p) => parsePost(p.slug, p.markdown))];
   if (!chunks.length) throw new Error("knowledge.json has no content");
-  return { chunks, index: new Bm25(chunks.map((c) => `${c.title} ${c.title} ${c.text}`)) };
+  return {
+    chunks,
+    index: new Bm25(chunks.map((c) => `${c.title} ${c.title} ${c.text}`)),
+    slugs: new Set(file.posts.map((p) => p.slug)),
+  };
 }
 
 let cached: { at: number; url: string; kb: Knowledge } | null = null;
@@ -267,6 +274,47 @@ export function retrieve(kb: Knowledge, query: string): Retrieved {
   }
   if (!actions.length) actions.push("app:contact");
   return { context, actions: actions.slice(0, 3) };
+}
+
+/**
+ * Context for Fit check: each line of the job description votes for its two best-matching chunks, so a long
+ * description covering many topics still pulls in evidence for each of them. Always includes the core facts,
+ * the skills and the current role.
+ */
+export function retrieveForJob(kb: Knowledge, jd: string, maxChunks = 9, budgetChars = 7000): Chunk[] {
+  const { chunks, index } = kb;
+  const segments = jd
+    .split(/\n|(?<=[.;•])\s+/)
+    .map((s) => s.replace(/^[\s\-*•\d.)]+/, "").trim())
+    .filter((s) => s.length >= 12)
+    .slice(0, 60);
+  const votes = new Array<number>(chunks.length).fill(0);
+  for (const segment of segments) {
+    const scores = index.score(segment);
+    const best = Math.max(...scores);
+    if (best <= 0) continue;
+    scores
+      .map((s, i) => ({ s, i }))
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 2)
+      .forEach(({ s, i }) => { if (s > 0) votes[i] += s / best; });
+  }
+  const always = (c: Chunk) => c.core || c.title === "Skills" || c.title.startsWith("Experience: Reliance Jio");
+  const picked: Chunk[] = [];
+  let budget = budgetChars;
+  const add = (c: Chunk) => {
+    const text = c.text.slice(0, ASK_LIMITS.chunkChars);
+    if (picked.length >= maxChunks || text.length > budget || picked.some((p) => p.title === c.title)) return;
+    budget -= text.length;
+    picked.push({ ...c, text });
+  };
+  chunks.filter(always).forEach(add);
+  chunks
+    .map((c, i) => ({ c, v: votes[i] }))
+    .filter((r) => r.v > 0)
+    .sort((a, b) => b.v - a.v)
+    .forEach((r) => add(r.c));
+  return picked;
 }
 
 // ---------------------------------------------------------------------------

@@ -1,33 +1,39 @@
 import { ASK_LIMITS, buildMessages, loadKnowledge, retrieve, sseToText, type Knowledge, type Turn } from "./ask";
+import type { Env } from "./env";
+import { fitCheck } from "./fit";
+import { listPostStats, prunePostSeen, reactToPost } from "./posts";
+import { pruneQuotas, takeQuota } from "./quota";
+import { bump, cleanLine, cleanMessage, clientIp, dayKey, DAY_MS, isAllowedOrigin, json, sha256, visitorHash } from "./util";
+import { transcribe } from "./voice";
+import { pruneArrivals, recordArrival, worldStats } from "./world";
+
+export type { Env } from "./env";
+export { cleanLine, cleanMessage, dayKey } from "./util";
 
 /**
- * iama-api — visitor counter + guestbook for https://antimkhel.github.io/IAmA/
+ * iama-api — the backend for https://antimkhel.github.io/IAmA/
  *
  * Public:
  *   POST /visit                      count this visitor once per day, returns { visitors, counted }
  *   GET  /stats                      { visitors }
+ *   GET  /stats/world                visitor map: visitors per country, latest arrivals, totals
  *   GET  /notes?before=<id>          approved notes, newest first, paged
  *   POST /notes                      { name, message, turnstileToken } → stored as pending (202)
  *   POST /ask                        { question, history } → streamed plain-text answer ("Ask Ritwik", Workers AI)
+ *   POST /fit                        { jd } → requirements matched to evidence from the site (Fit check)
+ *   POST /transcribe                 recorded audio → { text } (voice questions, Whisper)
+ *   GET  /posts                      reads and claps for every blog post
+ *   POST /posts/:slug/read           count a read (once per visitor per day)
+ *   POST /posts/:slug/clap           { count } claps (capped per visitor per day)
  * Admin (Authorization: Bearer <ADMIN_TOKEN>):
  *   GET    /admin/notes?status=pending|approved
  *   POST   /admin/notes/:id/approve
  *   DELETE /admin/notes/:id
  *
- * Privacy: no cookies and no raw IPs. Visitors are counted with a salted daily hash that is deleted after a
- * day; notes keep a salted IP hash only for rate limiting.
+ * Privacy: no cookies and no raw IPs. Visitors are identified only by a salted daily hash that is deleted
+ * after a day; the map keeps a country code; notes keep a salted IP hash only for rate limiting. Questions,
+ * job descriptions and audio are never stored.
  */
-
-export interface Env {
-  DB: D1Database;
-  ALLOWED_ORIGINS: string;
-  TURNSTILE_SECRET: string;
-  ADMIN_TOKEN: string;
-  HASH_SALT: string;
-  AI: Ai;
-  ASK_MODEL: string;
-  KNOWLEDGE_URL: string;
-}
 
 export const LIMITS = {
   name: 40,
@@ -38,7 +44,6 @@ export const LIMITS = {
 } as const;
 
 const TURNSTILE_VERIFY = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -58,8 +63,9 @@ export default {
 
   async scheduled(_event: ScheduledController, env: Env): Promise<void> {
     await env.DB.prepare("DELETE FROM visits WHERE day < ?").bind(dayKey(-1)).run();
-    await env.DB.prepare("DELETE FROM ask_usage WHERE day < ?").bind(dayKey(-1)).run();
-    await env.DB.prepare("DELETE FROM counters WHERE name LIKE 'ask:%' AND name < ?").bind(`ask:${dayKey(-1)}`).run();
+    await pruneQuotas(env);
+    await prunePostSeen(env);
+    await pruneArrivals(env);
   },
 };
 
@@ -70,9 +76,15 @@ async function route(request: Request, env: Env): Promise<Response> {
 
   if (path === "/visit" && method === "POST") return visit(request, env);
   if (path === "/stats" && method === "GET") return stats(env);
+  if (path === "/stats/world" && method === "GET") return worldStats(env);
   if (path === "/notes" && method === "GET") return listNotes(url, env);
   if (path === "/notes" && method === "POST") return createNote(request, env);
   if (path === "/ask" && method === "POST") return ask(request, env);
+  if (path === "/fit" && method === "POST") return fitCheck(request, env);
+  if (path === "/transcribe" && method === "POST") return transcribe(request, env);
+  if (path === "/posts" && method === "GET") return listPostStats(env);
+  const post = path.match(/^\/posts\/([a-z0-9-]{1,80})\/(read|clap)$/);
+  if (post && method === "POST") return reactToPost(request, env, post[1], post[2] as "read" | "clap");
 
   if (path.startsWith("/admin/")) {
     if (!(await isAdmin(request, env))) return json({ error: "Unauthorized" }, 401);
@@ -91,11 +103,12 @@ async function route(request: Request, env: Env): Promise<Response> {
 
 async function visit(request: Request, env: Env): Promise<Response> {
   const day = dayKey(0);
-  const hash = await sha256(`${clientIp(request)}|${request.headers.get("User-Agent") ?? ""}|${day}|${env.HASH_SALT}`);
+  const hash = await visitorHash(request, env, day);
   const inserted = await env.DB.prepare("INSERT OR IGNORE INTO visits (day, hash) VALUES (?, ?)").bind(day, hash).run();
   const counted = (inserted.meta.changes ?? 0) > 0;
   if (counted) {
     await env.DB.prepare("UPDATE counters SET value = value + 1 WHERE name = 'unique_visitors'").run();
+    await recordArrival(env, request);
   }
   return json({ visitors: await readVisitors(env), counted }, 200, { "Cache-Control": "no-store" });
 }
@@ -174,26 +187,6 @@ async function createNote(request: Request, env: Env): Promise<Response> {
   return json({ status: "pending" }, 202);
 }
 
-/** Single line: no control characters, collapsed whitespace. */
-export function cleanLine(value: unknown): string {
-  if (typeof value !== "string") return "";
-  return value.replace(/[\p{Cc}\p{Cf}]/gu, " ").replace(/\s+/g, " ").trim();
-}
-
-/** Multi-line note: keeps line breaks (at most one blank line in a row), strips other control characters. */
-export function cleanMessage(value: unknown): string {
-  if (typeof value !== "string") return "";
-  return value
-    .replace(/\r\n?/g, "\n")
-    .replace(/[^\S\n]+/g, " ")
-    .replace(/[\p{Cc}\p{Cf}]/gu, (c) => (c === "\n" ? c : ""))
-    .replace(/\n{3,}/g, "\n\n")
-    .split("\n")
-    .map((l) => l.trim())
-    .join("\n")
-    .trim();
-}
-
 async function verifyTurnstile(token: unknown, ip: string, env: Env): Promise<boolean> {
   if (typeof token !== "string" || !token || token.length > 2048 || !env.TURNSTILE_SECRET) return false;
   const form = new FormData();
@@ -238,24 +231,11 @@ async function ask(request: Request, env: Env): Promise<Response> {
     }))
     .filter((t) => t.q && t.a);
 
-  const day = dayKey(0);
-  const visitor = await sha256(`${clientIp(request)}|${request.headers.get("User-Agent") ?? ""}|${day}|${env.HASH_SALT}`);
-  const mine = await env.DB.prepare(
-    "INSERT INTO ask_usage (day, hash, count) VALUES (?, ?, 1) ON CONFLICT (day, hash) DO UPDATE SET count = count + 1 RETURNING count",
-  )
-    .bind(day, visitor)
-    .first<{ count: number }>();
-  const used = mine?.count ?? 1;
-  if (used > ASK_LIMITS.perVisitorPerDay) {
-    return json({ error: "That's all the questions for today. Email Ritwik at raj.ritwik96@gmail.com, he'd be glad to hear from you." }, 429);
-  }
-  const total = await env.DB.prepare(
-    "INSERT INTO counters (name, value) VALUES (?, 1) ON CONFLICT (name) DO UPDATE SET value = value + 1 RETURNING value",
-  )
-    .bind(`ask:${day}`)
-    .first<{ value: number }>();
-  if ((total?.value ?? 1) > ASK_LIMITS.perDay) {
-    return json({ error: "Ask is resting for today. Try Search, or email Ritwik at raj.ritwik96@gmail.com." }, 503);
+  const quota = await takeQuota(env, "ask", await visitorHash(request, env), ASK_LIMITS);
+  if (!quota.ok) {
+    return quota.reason === "visitor"
+      ? json({ error: "That's all the questions for today. Email Ritwik at raj.ritwik96@gmail.com, he'd be glad to hear from you." }, 429)
+      : json({ error: "Ask is resting for today. Try Search, or email Ritwik at raj.ritwik96@gmail.com." }, 503);
   }
 
   let kb: Knowledge;
@@ -282,6 +262,7 @@ async function ask(request: Request, env: Env): Promise<Response> {
     console.error("ai", err);
     return json({ error: "Ask is resting for today. Try Search, or email Ritwik at raj.ritwik96@gmail.com." }, 503);
   }
+  await bump(env, "ask_total");
 
   const toText = sseToText((u) =>
     console.log(JSON.stringify({ ask: "usage", model: env.ASK_MODEL, in: u.prompt_tokens, out: u.completion_tokens, neurons: u.neurons })),
@@ -293,7 +274,7 @@ async function ask(request: Request, env: Env): Promise<Response> {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-store, no-transform",
       "X-Ask-Actions": actions.join(","),
-      "X-Ask-Remaining": String(Math.max(0, ASK_LIMITS.perVisitorPerDay - used)),
+      "X-Ask-Remaining": String(quota.remaining),
     },
   });
 }
@@ -336,11 +317,6 @@ async function remove(id: number, env: Env): Promise<Response> {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function isAllowedOrigin(origin: string | null, env: Env): boolean {
-  const allowed = (env.ALLOWED_ORIGINS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  return !!origin && allowed.includes(origin);
-}
-
 function corsHeaders(origin: string | null, env: Env): Record<string, string> {
   if (!isAllowedOrigin(origin, env)) return { Vary: "Origin" };
   return {
@@ -351,25 +327,4 @@ function corsHeaders(origin: string | null, env: Env): Record<string, string> {
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
-}
-
-function json(data: unknown, status = 200, headers: Record<string, string> = {}): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", ...headers },
-  });
-}
-
-function clientIp(request: Request): string {
-  return request.headers.get("CF-Connecting-IP") ?? "";
-}
-
-/** UTC date as YYYY-MM-DD, offset by whole days. */
-export function dayKey(offsetDays: number, now = Date.now()): string {
-  return new Date(now + offsetDays * DAY_MS).toISOString().slice(0, 10);
-}
-
-async function sha256(text: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }

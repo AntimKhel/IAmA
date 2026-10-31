@@ -195,9 +195,6 @@ describe("POST /ask", () => {
   });
 
   it("limits questions per visitor per day", async () => {
-    await env.DB.prepare("INSERT INTO ask_usage (day, hash, count) SELECT ?, hash, ? FROM (SELECT 'x' AS hash)")
-      .bind(dayKey(0), 0)
-      .run();
     let last = 0;
     for (let i = 0; i <= ASK_LIMITS.perVisitorPerDay; i++) {
       const res = await ask({ question: "What does he do?" });
@@ -231,11 +228,11 @@ describe("POST /ask", () => {
 
   it("keeps only today's and yesterday's usage rows", async () => {
     await env.DB.batch([
-      env.DB.prepare("INSERT INTO ask_usage (day, hash, count) VALUES (?, 'a', 1), (?, 'b', 1)").bind(dayKey(-3), dayKey(0)),
+      env.DB.prepare("INSERT INTO usage (day, kind, hash, count) VALUES (?, 'ask', 'a', 1), (?, 'ask', 'b', 1)").bind(dayKey(-3), dayKey(0)),
       env.DB.prepare("INSERT INTO counters (name, value) VALUES (?, 5), (?, 5)").bind(`ask:${dayKey(-3)}`, `ask:${dayKey(0)}`),
     ]);
     await worker.scheduled(createScheduledController(), env);
-    const days = await env.DB.prepare("SELECT day FROM ask_usage").all<{ day: string }>();
+    const days = await env.DB.prepare("SELECT day FROM usage").all<{ day: string }>();
     expect(days.results.map((r) => r.day)).toEqual([dayKey(0)]);
     const names = await env.DB.prepare("SELECT name FROM counters WHERE name LIKE 'ask:%'").all<{ name: string }>();
     expect(names.results.map((r) => r.name)).toEqual([`ask:${dayKey(0)}`]);

@@ -12,6 +12,8 @@ workers_dev = true
 ALLOWED_ORIGINS = "https://antimkhel.github.io,http://localhost:8080"
 # "Ask Ritwik" model on Workers AI (free plan: 10,000 neurons/day; past that, requests error, never bill).
 ASK_MODEL = "@cf/zai-org/glm-4.7-flash"
+# Voice questions: speech to text on Workers AI (~47 neurons per audio minute).
+VOICE_MODEL = "@cf/openai/whisper-large-v3-turbo"
 # What Ask knows: published by the site build (profile facts + every blog post). Locally, .dev.vars points
 # this at the Kobweb dev server instead.
 KNOWLEDGE_URL = "https://antimkhel.github.io/IAmA/knowledge.json"
