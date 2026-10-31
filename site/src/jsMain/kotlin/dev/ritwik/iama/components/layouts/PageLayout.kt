@@ -32,6 +32,11 @@ import kotlinx.browser.window
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import dev.ritwik.iama.components.phone.AppWindowHost
+import dev.ritwik.iama.components.phone.BackDispatcher
+import dev.ritwik.iama.components.devtools.DevOverlays
+import dev.ritwik.iama.components.theme.DynamicColor
+import dev.ritwik.iama.util.Logcat
+import com.varabyte.kobweb.silk.theme.colors.ColorMode
 import dev.ritwik.iama.components.recruiter.ContactSheet
 import dev.ritwik.iama.components.recruiter.Toast
 import dev.ritwik.iama.components.widgets.VisitorStats
@@ -48,7 +53,17 @@ class PageLayoutData(val title: String)
 fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
     val data = ctx.data.getValue<PageLayoutData>()
     // Visitor counter: registers this visit once per session, then reads the total (hidden if the API is down).
-    LaunchedEffect(Unit) { VisitorStats.load() }
+    LaunchedEffect(Unit) {
+        Logcat.install()
+        BackDispatcher.install()
+        DynamicColor.apply()
+        VisitorStats.load()
+    }
+    LaunchedEffect(ctx.route.path) {
+        Logcat.i("ActivityTaskManager", "START u0 {act=android.intent.action.VIEW dat=${ctx.route.path}}")
+    }
+    val colorMode = ColorMode.current
+    LaunchedEffect(colorMode) { Logcat.d("UiModeManager", "night mode: ${if (colorMode.isDark) "yes" else "no"}") }
 
     // Cmd/Ctrl+K opens launcher search from anywhere.
     DisposableEffect(Unit) {
@@ -89,6 +104,7 @@ fun PageLayout(ctx: PageContext, content: @Composable ColumnScope.() -> Unit) {
     }
     AppWindowHost(AppHost.FULL)
     DevModeHost()
+    DevOverlays()
     ContactSheet()
     Toast()
 }

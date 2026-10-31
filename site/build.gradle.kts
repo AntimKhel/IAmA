@@ -60,6 +60,12 @@ kobweb {
                                 cl.add(dark ? 'silk-dark' : 'silk-light');
                                 /* This page is the pre-painted snapshot: skip entrances Compose would replay (blog.css). */
                                 cl.add('rr-snap');
+                                /* Material You (Settings › Wallpaper & style): saved palette CSS, photo wallpaper, themed icons. */
+                                var monet = localStorage.getItem('rr-monet-css');
+                                if (monet) { var st = document.createElement('style'); st.id = 'rr-monet'; st.textContent = monet; document.head.appendChild(st); }
+                                var wall = localStorage.getItem('rr-wallpaper');
+                                if (wall) document.documentElement.style.setProperty('--wall-photo', 'url("' + wall + '")');
+                                if (localStorage.getItem('rr-themed-icons') === '1') cl.add('themed-icons');
                                 var home = l.pathname.replace(/\/+$/, '') === '$base';
                                 var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
                                 if (!home || reduce || sessionStorage.getItem('rr-booted')) return;

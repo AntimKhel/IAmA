@@ -45,6 +45,11 @@ private fun index(toggleTheme: () -> Unit): List<Hit> = buildList {
     add(Hit("Copy email", Profile.email, "Action", "fa-regular fa-copy", "email mail contact address", run = { copyToClipboard(Profile.email, "Email") }))
     add(Hit("Email Ritwik", "Opens your mail app", "Action", "fa-solid fa-envelope", "email write message hire contact", href = "mailto:${Profile.email}"))
     add(Hit("Toggle dark / light mode", "Switch the site's theme", "Action", "fa-solid fa-circle-half-stroke", "theme dark light mode color", run = toggleTheme))
+    if (Backend.enabled) {
+        add(Hit("Check fit with a job description", "Paste a JD, see the evidence (Fit check)", "Action", "fa-solid fa-clipboard-check", "hire hiring recruiter job jd role match fit requirements", run = { openApp(Apps.ask, "fit") }))
+        add(Hit("Visitor map", "Where visitors come from", "Action", "fa-solid fa-earth-asia", "stats visitors countries map world analytics", run = { openApp(Apps.stats) }))
+    }
+    add(Hit("Wallpaper & style", "Material You: colours, photo, themed icons", "Action", "fa-solid fa-palette", "theme material you dynamic color wallpaper settings", run = { openApp(Apps.settings, "wallpaper") }))
     add(Hit(if (DevMode.enabled) "Exit dev mode" else "Enter dev mode", "Re-skin the site as terminals", "Action", "fa-solid fa-terminal", "developer terminal easter egg", run = {
         PhoneState.close()
         DevMode.toggle()

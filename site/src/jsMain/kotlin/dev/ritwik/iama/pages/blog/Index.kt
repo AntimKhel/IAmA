@@ -1,5 +1,8 @@
 package dev.ritwik.iama.pages.blog
 
+import dev.ritwik.iama.components.blog.slugOf
+import dev.ritwik.iama.components.blog.PostStats
+import dev.ritwik.iama.components.blog.PostCounts
 import androidx.compose.runtime.*
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.core.data.add
@@ -24,6 +27,7 @@ private fun hue(p: BlogEntry) = (p.title.sumOf { it.code } * 37) % 360
 @Layout(".components.layouts.PageLayout")
 @Composable
 fun BlogListPage() {
+    LaunchedEffect(Unit) { PostStats.loadAll() }
     val router = rememberPageContext().router
     var tag by remember { mutableStateOf<String?>(null) }
     val allTags = remember { blogEntries.flatMap { it.tags }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key } }
@@ -56,7 +60,7 @@ fun BlogListPage() {
                                 if (i == 0 && tag == null) Span({ classes("blog-new") }) { Text("Latest") }
                             }
                             Div({ classes("blog-body") }) {
-                                Div({ classes("blog-meta") }) { Text("${p.date} · ${p.readingMinutes} min read") }
+                                Div({ classes("blog-meta") }) { Text("${p.date} · ${p.readingMinutes} min read"); PostCounts(slugOf(p.route)) }
                                 H2({ classes("blog-name") }) { Text(p.title) }
                                 P({ classes("blog-desc") }) { Text(p.description) }
                                 Div({ classes("blog-chips") }) { p.tags.forEach { Span { Text(it) } } }

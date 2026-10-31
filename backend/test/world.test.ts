@@ -22,7 +22,8 @@ describe("visitor map", () => {
     await call("/visit", { method: "POST", country: "IN", ip: "198.51.100.2" });
     await call("/visit", { method: "POST", country: "DE", ip: "198.51.100.3" });
 
-    const world = await (await call("/stats/world")).json<World>();
+    const world = await (await call("/stats/world", { country: "DE" })).json<World & { you: string | null }>();
+    expect(world.you).toBe("DE");
     expect(world.visitors).toBe(3);
     expect(world.countries).toEqual([
       { code: "IN", visitors: 2 },

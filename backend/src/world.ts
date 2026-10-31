@@ -31,8 +31,8 @@ export async function recordArrival(env: Env, request: Request, now = Date.now()
   ]);
 }
 
-/** GET /stats/world: totals, visitors per country and the latest arrivals. */
-export async function worldStats(env: Env): Promise<Response> {
+/** GET /stats/world: totals, visitors per country, the latest arrivals, and the caller's own country. */
+export async function worldStats(request: Request, env: Env): Promise<Response> {
   const [counters, countries, recent, notes] = await env.DB.batch([
     env.DB.prepare("SELECT name, value FROM counters WHERE name IN ('unique_visitors', 'ask_total', 'fit_total')"),
     env.DB.prepare("SELECT code, visitors FROM countries ORDER BY visitors DESC, code LIMIT 250"),
@@ -43,6 +43,7 @@ export async function worldStats(env: Env): Promise<Response> {
   return json(
     {
       since: WORLD_SINCE,
+      you: countryOf(request),
       visitors: totals.unique_visitors ?? 0,
       askAnswered: totals.ask_total ?? 0,
       fitChecks: totals.fit_total ?? 0,
@@ -51,7 +52,7 @@ export async function worldStats(env: Env): Promise<Response> {
       recent: (recent.results as Array<{ country: string; at: number }>).map((r) => ({ code: r.country, at: r.at })),
     },
     200,
-    { "Cache-Control": "public, max-age=60" },
+    { "Cache-Control": "private, max-age=60" }, // includes the caller's country
   );
 }
 

@@ -2,6 +2,7 @@ package dev.ritwik.iama.components.phone
 
 import androidx.compose.runtime.Composable
 import com.varabyte.kobweb.core.rememberPageContext
+import dev.ritwik.iama.components.devtools.DevOptions
 import dev.ritwik.iama.data.Backend
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.util.HtmlState
@@ -50,6 +51,9 @@ object Apps {
     val awards = LauncherApp("Awards", "fa-solid fa-trophy", "#ffb13d", "#ff8a3d", AppAction.Open(AppScreen.AWARDS))
     val guestbook = LauncherApp("Guestbook", "fa-solid fa-feather-pointed", "#ff6fae", "#ffb13d", AppAction.Open(AppScreen.GUESTBOOK))
     val ask = LauncherApp("Ask", "fa-solid fa-wand-magic-sparkles", "#7c4dff", "#00bfa5", AppAction.Open(AppScreen.ASK))
+    val settings = LauncherApp("Settings", "fa-solid fa-gear", "#5f6b7a", "#2b3340", AppAction.Open(AppScreen.SETTINGS))
+    val stats = LauncherApp("Stats", "fa-solid fa-earth-asia", "#00bfa5", "#2f6bff", AppAction.Open(AppScreen.STATS))
+    val logcat = LauncherApp("Logcat", "fa-solid fa-bug", "#3ddc84", "#0d1117", AppAction.Open(AppScreen.LOGCAT))
 
     val phone = LauncherApp("Phone", "fa-solid fa-phone", "#3ddc84", "#00bfa5", AppAction.Open(AppScreen.CONTACT))
     val mail = LauncherApp("Mail", "fa-solid fa-envelope", "#2f6bff", "#00bfa5", AppAction.External("mailto:${Profile.email}"))
@@ -59,18 +63,27 @@ object Apps {
     /** The Guestbook takes GitHub's slot once the backend is configured (GitHub stays in footer + contact). */
     private val lastSlot get() = if (Backend.enabled) guestbook else github
 
-    val grid get() = listOf(work, products, blog, about, contact, resume, linkedIn, lastSlot)
+    /** Logcat appears once Developer options are unlocked (Settings › About phone › Build number, 7 taps). */
+    private val devApps get() = listOfNotNull(logcat.takeIf { DevOptions.unlocked })
+
+    // Stats (the visitor map) needs the backend, and takes LinkedIn's place on the phone's home grid
+    // (LinkedIn stays in the hero, the Contact app, the footer and Search).
+    val grid get() = listOf(work, products, blog, about, contact, resume, if (Backend.enabled) stats else linkedIn, lastSlot)
 
     /** Every app, for launcher search. */
     val all get() = listOfNotNull(
         work, products, blog, about, skills, awards, contact, resume,
-        ask.takeIf { Backend.enabled }, guestbook.takeIf { Backend.enabled }, linkedIn, github,
-    )
+        ask.takeIf { Backend.enabled }, stats.takeIf { Backend.enabled }, guestbook.takeIf { Backend.enabled },
+        settings, linkedIn, github,
+    ) + devApps
 
-    // Ask needs the backend too; it takes the slots of apps that are reachable elsewhere (Browser opened
-    // the Blog; Awards is in Search and About).
-    val desk get() = listOf(work, products, blog, about, skills, if (Backend.enabled) ask else awards, contact, resume, linkedIn, lastSlot)
-    val dock get() = listOf(phone, mail, play, if (Backend.enabled) ask else browser)
+    // Ask takes the slot of apps reachable elsewhere (Browser opened the Blog; Awards is in Search and About);
+    // Settings takes Play's (which opened Products).
+    val desk get() = listOfNotNull(
+        work, products, blog, about, skills, if (Backend.enabled) ask else awards, contact, resume,
+        stats.takeIf { Backend.enabled }, settings, linkedIn, lastSlot,
+    ) + devApps
+    val dock get() = listOf(phone, mail, if (Backend.enabled) ask else browser, settings)
 }
 
 /** One launcher icon. Links (résumé, external) render as real anchors so they work without JS routing. */

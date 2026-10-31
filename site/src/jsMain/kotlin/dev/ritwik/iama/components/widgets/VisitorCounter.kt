@@ -1,5 +1,8 @@
 package dev.ritwik.iama.components.widgets
 
+import dev.ritwik.iama.components.phone.PhoneState
+import dev.ritwik.iama.components.phone.AppHost
+import dev.ritwik.iama.components.phone.Apps
 import androidx.compose.runtime.*
 import dev.ritwik.iama.data.Backend
 import dev.ritwik.iama.util.Api
@@ -60,9 +63,16 @@ fun CountUp(target: Int, durationMs: Int = 1400) {
 @Composable
 fun VisitorBadge() {
     val count = VisitorStats.visitors ?: return
-    Span({ classes("visitor-badge"); attr("title", "Unique visitors, counted once a day. No cookies.") }) {
+    // Opens the visitor map (the Stats app).
+    Button({
+        classes("visitor-badge")
+        attr("title", "Unique visitors, counted once a day. No cookies. Tap for the map.")
+        attr("data-origin", "")
+        onClick { e -> PhoneState.open(Apps.stats, AppHost.FULL, e.target as? org.w3c.dom.Element) }
+    }) {
         Span({ classes("live") })
         B { CountUp(count) }
         Text(" ${if (count == 1) "visitor" else "visitors"} since ${Backend.COUNTING_SINCE}")
+        I({ classes("fa-solid", "fa-earth-asia") })
     }
 }

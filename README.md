@@ -4,21 +4,32 @@
 
 A portfolio that behaves like an Android phone, written entirely in Kotlin with
 [Kobweb](https://github.com/varabyte/kobweb) (Compose for Web). The site is a static export on GitHub Pages; a small
-Cloudflare backend adds a visitor counter, a moderated guestbook and **Ask Ritwik**, an AI assistant that answers
-questions from what's published on the site.
+Cloudflare backend adds a visitor counter and map, a moderated guestbook, blog reactions, and **Ask Ritwik**, an AI
+assistant that answers questions (typed or spoken) and checks job descriptions against what's published on the site.
 
 ## What's in it
 
 - **Hero phone**: a 3D phone with working apps (Work, Products, Blog, About, Skills, Awards, Contact, Résumé,
-  Guestbook, Search, Ask). On phones, the visitor's screen *is* the home screen.
+  Guestbook, Search, Ask, Stats, Settings). On phones, the visitor's screen *is* the home screen.
 - **Ask Ritwik**: chat with an AI that has read the site, from the phone dock, the desktop launcher, Search, or the
   "Ask AI" chip in the nav (past the hero it widens and types out example questions). Answers stream in, with
-  buttons that open the relevant app, product or post.
-- **Search** (⌘K / Ctrl+K): apps, products, posts, companies, skills and quick actions.
-- **Blog**: markdown posts, discovered automatically, with syntax highlighting and charts.
-- **Visitor counter and guestbook**: notes appear after approval at `/admin`.
-- **Dev mode**: the whole site re-skinned as terminals (press `` ` ``, or tap the build number in About 7 times).
-- Light and dark themes, reduced-motion support, keyboard focus management.
+  buttons that open the relevant app, product or post. Ask by voice (the mic) and have answers read aloud.
+- **Fit check**: recruiters paste a job description and get each requirement matched to evidence on the site
+  (with buttons to it) or flagged as not covered. In Ask, Search and the "Hire me" sheet.
+- **Visitor map**: the Stats app shows where visitors come from on a dotted world map (country codes only), with
+  totals; the footer's visitor count opens it.
+- **Blog**: markdown posts, discovered automatically, with syntax highlighting, charts, read counts and claps.
+- **Material You**: Settings › Wallpaper & style re-themes the whole site from a seed colour or your own photo
+  (dynamic colour, themed icons), applied before first paint on later visits.
+- **Developer options**: tap the build number (Settings › About phone) 7 times. Working toggles: Show layout bounds,
+  window / transition / animator scales, Pointer location, Show taps, Profile HWUI rendering, Strict mode,
+  Predictive back animations, and the terminal skin (also on `` ` ``).
+- **Logcat**: the site's own events (pages displayed, apps started, network calls with timings, slow frames,
+  errors) as Android log lines, with levels, filters and `tag:` queries.
+- **Back, like Android**: Escape, the browser's/phone's system back and a predictive-back edge swipe all go back
+  inside an app first, then close it, instead of leaving the site.
+- **Search** (⌘K / Ctrl+K), a moderated **guestbook** (`/admin`), light and dark themes, reduced-motion support and
+  keyboard focus management.
 
 ## Architecture
 
@@ -30,9 +41,9 @@ questions from what's published on the site.
    │                                   ▲ knowledge.json (cached 5 min)
    │  fetch (CORS: site origins only)  │
    └──────────────▶ Cloudflare Worker "iama-api" (backend/)
-                      ├─ D1 (SQLite): counters, daily visitor hashes, notes, Ask usage
+                      ├─ D1 (SQLite): counters, daily visitor hashes, countries, notes, post reactions, quotas
                       ├─ Turnstile siteverify: spam check for guestbook notes
-                      └─ Workers AI: GLM-4.7-Flash answers for Ask Ritwik
+                      └─ Workers AI: GLM-4.7-Flash (Ask, Fit check) and Whisper (voice questions)
 ```
 
 Everything dynamic runs on Cloudflare's free tier. The site keeps working if the API is down: the counter, guestbook
@@ -43,7 +54,9 @@ and Ask hide or show a friendly message instead of breaking the page.
 | Path | What it is |
 |---|---|
 | `site/src/jsMain/kotlin/dev/ritwik/iama/data/Profile.kt` | Single source of truth for everything the site says about Ritwik |
-| `site/src/jsMain/kotlin/dev/ritwik/iama/components/` | `hero/` (phone scene), `phone/` + `phone/apps/` (launcher and apps), `sections/`, `blog/`, `guestbook/`, `ask/` (the nav's Ask AI chip), `devmode/` |
+| `site/src/jsMain/kotlin/dev/ritwik/iama/components/` | `hero/` (phone scene), `phone/` + `phone/apps/` (launcher, back handling, apps), `sections/`, `blog/` (incl. reactions), `guestbook/`, `ask/` (nav chip, voice), `devtools/` (Developer options), `theme/` (Material You), `devmode/` |
+| `site/src/jsMain/kotlin/dev/ritwik/iama/util/Logcat.kt` | The event log behind the Logcat app |
+| `site/src/jsMain/kotlin/dev/ritwik/iama/data/WorldMap.kt` | The visitor map's dot grid and country points, generated by `site/tools/worldmap.py` from Natural Earth |
 | `site/src/jsMain/resources/markdown/blog/` | Blog posts (front matter: `title`, `date`, `description`, `tags`, optional `draft: true`) |
 | `site/src/jsMain/resources/public/` | CSS, images, `resume.pdf` |
 | `site/knowledge/profile.md` | What Ask Ritwik knows besides the posts (mirrors `Profile.kt`) |
@@ -88,7 +101,11 @@ Secrets (`TURNSTILE_SECRET`, `ADMIN_TOKEN`, `HASH_SALT`) live only in Cloudflare
 | `POST /visit`, `GET /stats` | Unique visitors, counted once a day per visitor with a salted daily hash |
 | `GET /notes`, `POST /notes` | Approved guestbook notes; new notes need a Turnstile token and land as pending |
 | `GET /admin/notes`, `POST /admin/notes/:id/approve`, `DELETE /admin/notes/:id` | Moderation (Bearer `ADMIN_TOKEN`), used by `/admin` |
+| `GET /stats/world` | Visitor map: visitors per country, latest arrivals, totals, and the caller's country |
 | `POST /ask` | Ask Ritwik: `{ question, history }` → answer streamed as text; suggested buttons in `X-Ask-Actions` |
+| `POST /fit` | Fit check: `{ jd }` → `{ role, summary, requirements: [{ requirement, status, evidence, actions }], counts }` |
+| `POST /transcribe` | Voice: recorded audio (`audio/webm`, `audio/mp4`…) → `{ text }` |
+| `GET /posts`, `POST /posts/:slug/read`, `POST /posts/:slug/clap` | Blog reactions: reads (once per visitor per day) and claps (up to 10) |
 
 ## How Ask Ritwik works
 
@@ -104,12 +121,23 @@ Secrets (`TURNSTILE_SECRET`, `ADMIN_TOKEN`, `HASH_SALT`) live only in Cloudflare
 5. **The buttons** under an answer come from the chunks that were retrieved, not from the model, so they always open
    something real.
 
+**Fit check** uses the same knowledge differently: each line of the job description votes for its best-matching
+chunks (so a long description pulls in evidence for every topic), the model returns JSON, and grounding is enforced
+in code: a "match" or "partial" must cite a section it was actually given, or it becomes a gap, and those sections
+become the buttons. The job description is treated as untrusted data and never stored.
+
+**Voice:** the browser records the question (MediaRecorder, so it works in every major browser) and the Worker
+transcribes it with Whisper on Workers AI, biased towards names like JioAirSync; answers to spoken questions are
+read aloud with the browser's speech synthesis. Audio is never stored.
+
 **Adding knowledge:** publish a blog post and Ask knows it within minutes of the site deploy; nothing in `backend/`
 changes. For profile facts, update `Profile.kt` and `site/knowledge/profile.md` together.
 
 **Cost and limits:** the Workers Free plan includes 10,000 neurons a day, and past that requests fail rather than
-bill. Answers measured 5–11 neurons each, so the Worker caps Ask at 20 questions per visitor and 800 site-wide a
-day. `npx wrangler tail` shows one usage line (tokens and neurons) per answer.
+bill. Measured costs: Ask 5–11 neurons an answer, Fit check up to ~55, voice ~47 per audio minute. Daily caps keep
+the worst day around the free allowance: Ask 20 per visitor / 600 site-wide, Fit check 3 / 40, voice 25 / 150
+(`ASK_LIMITS`, `FIT_LIMITS`, `VOICE_LIMITS` in `backend/src/`). `npx wrangler tail` shows one usage line (tokens and
+neurons) per answer.
 
 **Changing the model:** edit `ASK_MODEL` in `backend/wrangler.toml`, or try one locally with
 `npx wrangler dev --var ASK_MODEL:<model>`. Models that "think" need `chat_template_kwargs: { enable_thinking: false }`
@@ -117,9 +145,11 @@ day. `npx wrangler tail` shows one usage line (tokens and neurons) per answer.
 
 ## Privacy
 
-No cookies and no raw IP addresses. Visitors are counted with a salted daily hash that is deleted after a day.
-Guestbook notes keep a salted IP hash only for rate limiting. Ask questions are not stored: the Worker keeps a
-per-visitor daily count and logs token usage, not question text. Questions are processed by Cloudflare Workers AI.
+No cookies and no raw IP addresses. Visitors are counted with a salted daily hash that is deleted after a day; the
+visitor map keeps only the two-letter country code Cloudflare reports. Guestbook notes keep a salted IP hash only
+for rate limiting. Questions, job descriptions and voice recordings are not stored: the Worker keeps per-visitor
+daily counts and logs token usage, never the content. They're processed by Cloudflare Workers AI. Material You
+photos stay in the visitor's browser.
 
 ## Tests
 

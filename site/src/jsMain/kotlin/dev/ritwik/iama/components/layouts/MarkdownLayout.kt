@@ -1,5 +1,9 @@
 package dev.ritwik.iama.components.layouts
 
+import dev.ritwik.iama.components.blog.slugOf
+import dev.ritwik.iama.components.blog.ReadTracker
+import dev.ritwik.iama.components.blog.PostCounts
+import dev.ritwik.iama.components.blog.ClapBar
 import androidx.compose.runtime.*
 import com.varabyte.kobweb.core.data.add
 import com.varabyte.kobweb.core.init.InitRoute
@@ -95,6 +99,7 @@ fun MarkdownLayout(content: @Composable () -> Unit) {
                         Div({ classes("post-author") }) { Text(Profile.name) }
                         Div({ classes("post-when") }) {
                             Text(listOfNotNull(date, entry?.let { "${it.readingMinutes} min read" }).joinToString(" · "))
+                            if (entry != null) PostCounts(slugOf(entry.route))
                         }
                     }
                 }
@@ -122,6 +127,11 @@ fun MarkdownLayout(content: @Composable () -> Unit) {
         }
 
         Footer({ classes("post-end", "post-wrap") }) {
+            if (entry != null) {
+                val slug = slugOf(entry.route)
+                ReadTracker(slug) { document.querySelector(".post-body") as? org.w3c.dom.HTMLElement }
+                ClapBar(slug)
+            }
             Div({ classes("author-card") }) {
                 Span({ classes("post-avatar", "big") }) { Text("R") }
                 Div({ classes("author-text") }) {

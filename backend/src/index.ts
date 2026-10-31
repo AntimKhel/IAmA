@@ -76,7 +76,7 @@ async function route(request: Request, env: Env): Promise<Response> {
 
   if (path === "/visit" && method === "POST") return visit(request, env);
   if (path === "/stats" && method === "GET") return stats(env);
-  if (path === "/stats/world" && method === "GET") return worldStats(env);
+  if (path === "/stats/world" && method === "GET") return worldStats(request, env);
   if (path === "/notes" && method === "GET") return listNotes(url, env);
   if (path === "/notes" && method === "POST") return createNote(request, env);
   if (path === "/ask" && method === "POST") return ask(request, env);

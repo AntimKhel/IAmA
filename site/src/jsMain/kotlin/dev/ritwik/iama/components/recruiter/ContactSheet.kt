@@ -1,5 +1,9 @@
 package dev.ritwik.iama.components.recruiter
 
+import dev.ritwik.iama.components.phone.PhoneState
+import dev.ritwik.iama.components.phone.AppHost
+import dev.ritwik.iama.components.phone.Apps
+import dev.ritwik.iama.data.Backend
 import androidx.compose.runtime.*
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.util.UiState
@@ -85,6 +89,23 @@ fun ContactSheet() {
             }
         }
 
+        if (Backend.enabled) {
+            Button({
+                classes("rr-sheet-fit")
+                attr("data-origin", "")
+                onClick { e ->
+                    UiState.contactOpen = false
+                    PhoneState.open(Apps.ask, AppHost.FULL, e.target as? org.w3c.dom.Element, "fit")
+                }
+            }) {
+                I({ classes("fa-solid", "fa-clipboard-check") })
+                Span {
+                    B { Text("Hiring for a role?") }
+                    Text(" Paste the job description and see how ${Profile.firstName} fits, with the evidence.")
+                }
+                I({ classes("fa-solid", "fa-arrow-right") })
+            }
+        }
         Div({ classes("rr-sheet-cta") }) {
             A(resumeHref, { classes("rr-btn", "primary"); attr("download", Profile.resumeFileName) }) {
                 I({ classes("fa-solid", "fa-file-arrow-down") }); Text("Download résumé")

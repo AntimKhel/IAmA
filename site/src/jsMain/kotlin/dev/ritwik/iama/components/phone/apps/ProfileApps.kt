@@ -1,9 +1,7 @@
 package dev.ritwik.iama.components.phone.apps
 
 import androidx.compose.runtime.*
-import dev.ritwik.iama.components.devmode.DevMode
 import dev.ritwik.iama.components.phone.AppBar
-import dev.ritwik.iama.components.phone.PhoneState
 import dev.ritwik.iama.data.Profile
 import dev.ritwik.iama.data.awards
 import dev.ritwik.iama.data.certifications
@@ -12,7 +10,6 @@ import dev.ritwik.iama.data.heroStats
 import dev.ritwik.iama.data.skillCategories
 import dev.ritwik.iama.util.UiState
 import dev.ritwik.iama.util.copyToClipboard
-import dev.ritwik.iama.util.haptic
 import dev.ritwik.iama.util.phoneNumber
 import dev.ritwik.iama.util.resumeHref
 import org.jetbrains.compose.web.attributes.ATarget
@@ -45,7 +42,7 @@ fun AboutApp() {
                 Div({ classes("rr-a-meta") }) { Text("${e.period} · ${e.score}") }
             }
         }
-        AboutPhone()
+        AboutPhoneCard()
         Div({ classes("rr-a-actions") }) {
             A(resumeHref, { classes("rr-a-install"); attr("download", Profile.resumeFileName) }) {
                 I({ classes("fa-solid", "fa-file-arrow-down") }); Text("Résumé")
@@ -154,45 +151,3 @@ fun ContactApp() {
 }
 
 /** Android's "About phone", including the classic easter egg: tap Build number 7 times → dev mode. */
-@Composable
-private fun AboutPhone() {
-    var taps by remember { mutableStateOf(0) }
-    Heading("About phone")
-    Div({ classes("rr-a-card", "rr-a-fields", "about-phone") }) {
-        listOf(
-            "Device name" to "Ritwik's Pixel",
-            "OS version" to "RitwikOS 7.0",
-            "Kernel" to "Kotlin · Compose · React Native",
-            "Uptime" to "${Profile.yearsOfExperience} years",
-        ).forEach { (k, v) ->
-            Div({ classes("f") }) {
-                Div({ classes("txt") }) {
-                    Div({ classes("rr-a-meta") }) { Text(k) }
-                    Div({ classes("rr-a-title") }) { Text(v) }
-                }
-            }
-        }
-        Button({
-            classes("f", "about-build")
-            onClick {
-                haptic(12)
-                taps++
-                when {
-                    DevMode.enabled -> UiState.showToast("No need, you are already a developer.")
-                    taps >= 7 -> {
-                        taps = 0
-                        UiState.showToast("You are now a developer!")
-                        PhoneState.close()
-                        DevMode.toggle()
-                    }
-                    taps >= 3 -> UiState.showToast("You are now ${7 - taps} step${if (7 - taps == 1) "" else "s"} away from being a developer.")
-                }
-            }
-        }) {
-            Div({ classes("txt") }) {
-                Div({ classes("rr-a-meta") }) { Text("Build number") }
-                Div({ classes("rr-a-title") }) { Text("SKOCH.GOLD.2026") }
-            }
-        }
-    }
-}

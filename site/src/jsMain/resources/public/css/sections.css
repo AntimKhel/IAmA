@@ -696,7 +696,7 @@ html.silk-light .v-b .sh-title {
   transform-origin: top;
   transform: scaleY(clamp(0, calc((var(--sp, 0) - 0.15) * 1.8), 1));
   background: linear-gradient(var(--g1), var(--g2), var(--g4), var(--g3));
-  box-shadow: 0 0 18px rgba(61, 220, 132, 0.6);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--g1) 60%, transparent);
 }
 
 .ea-item {
@@ -732,8 +732,8 @@ html.silk-light .v-b .sh-title {
 }
 
 @keyframes node-pulse {
-  0%, 100% { box-shadow: 0 0 0 6px rgba(61, 220, 132, 0.2), 0 0 20px rgba(61, 220, 132, 0.6); }
-  50% { box-shadow: 0 0 0 12px rgba(61, 220, 132, 0.05), 0 0 30px rgba(61, 220, 132, 0.9); }
+  0%, 100% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--g1) 20%, transparent), 0 0 20px color-mix(in srgb, var(--g1) 60%, transparent); }
+  50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--g1) 5%, transparent), 0 0 30px color-mix(in srgb, var(--g1) 90%, transparent); }
 }
 
 .ea-card {
@@ -781,7 +781,7 @@ html.silk-light .v-b .sh-title {
 
 .ea-period.live {
   color: #04140b;
-  background: linear-gradient(120deg, #6cf0a6, var(--g1));
+  background: linear-gradient(120deg, var(--g1l), var(--g1));
 }
 
 .ea-list {
@@ -846,7 +846,7 @@ html.silk-light .v-b .sh-title {
   height: 100%;
   width: calc(clamp(0, (var(--sp, 0) - 0.2) * 2.2, 1) * 25%);
   background: linear-gradient(90deg, var(--g1), var(--g2));
-  box-shadow: 0 0 14px rgba(61, 220, 132, 0.7);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--g1) 70%, transparent);
 }
 
 .ra-card {
@@ -997,7 +997,7 @@ html.silk-light .v-b .sh-title {
   font: 800 38px var(--font-display);
   color: #04140b;
   background: var(--grad);
-  box-shadow: 0 0 60px rgba(61, 220, 132, 0.5), 0 0 0 10px color-mix(in srgb, var(--g1) 12%, transparent);
+  box-shadow: 0 0 60px color-mix(in srgb, var(--g1) 50%, transparent), 0 0 0 10px color-mix(in srgb, var(--g1) 12%, transparent);
 }
 
 .sa-ring {
@@ -1520,7 +1520,7 @@ html.silk-light .v-b .sh-title {
 .nf-logo {
   margin: 0;
   font: 700 15px / 1.15 var(--font-mono);
-  background: linear-gradient(160deg, #4dffa0, #00bfa5 45%, #2f6bff 75%, #7c4dff);
+  background: linear-gradient(160deg, #4dffa0, var(--g2) 45%, var(--g4) 75%, var(--g3));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
